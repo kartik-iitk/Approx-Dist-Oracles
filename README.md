@@ -36,7 +36,7 @@ cd build
 
 ## Implementation Phases
 
-1. Raw algorithm
+1. Raw algorithm and Test Cases
 2. Path Similarity Comparison
 3. Design Test cases:
    - Geomaps
