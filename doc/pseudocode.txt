@@ -1,0 +1,26 @@
+preprocess() {
+    1. Landmark Creation multi-level
+        - Create a vector of vectors for each level of length (k + 1) with last entry null for exiting loop.
+        - Initial level consists of all input vertices.
+    2. Level-wise Multi-source dijstra for storing distance to all nodes of lower level in the higher level.
+        and simultaneously store the landmark association of every vertex at every level.
+        - Works by adding a dummy node 
+    3. Ball Computation in the form of hash table
+}
+
+query() {
+    1. Front-Back strategy of computing distance
+    Note: This should be able to handle all cases (input can be landmark or not) properly.
+}
+
+
+Levels are 0-indexed
+
+Landmark[k + 1] = chosen vertex at sampling i, last sampling is empty (a vertex which is in sampling i was also part of all the samplings of samplings <= i; we can define rank/level as the highest sampling to which a vertex can belong)
+Focus[v][i] = Closest landmark of vertex v from landmarks of sampling i.
+Ball[v] = For vertex v, stores a unordered map (hash-table) of pairs of (vertex, distance) of curated vertices.
+
+Insights:
+1. choosing non-increasing sequence of landmark vertices is done so that we can ensure that focus of higher level is always the same or farther than the lower level.
+2. The stretch need not always be large, as the query can return before that when the stretch is lower.
+
