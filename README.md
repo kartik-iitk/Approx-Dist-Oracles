@@ -31,7 +31,7 @@ From the main directory,
 
 ```bash
 cd build
-./approx_dist_oracle
+./approx_dist_oracle <parameter_file.txt> <graph.txt> <queries.txt>
 ```
 
 ## Implementation Phases

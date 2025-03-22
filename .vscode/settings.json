@@ -2,6 +2,14 @@
   "cmake.sourceDirectory": "/Users/kartik/Library/Mobile Documents/com~apple~CloudDocs/Semester 8/CS648 - Randomised Algorithms/Mini Project/Approx-Dist-Oracles",
   "files.associations": {
     "vector": "cpp",
-    "limits": "cpp"
+    "limits": "cpp",
+    "deque": "cpp",
+    "forward_list": "cpp",
+    "list": "cpp",
+    "string": "cpp",
+    "valarray": "cpp",
+    "queue": "cpp",
+    "unordered_map": "cpp",
+    "iostream": "cpp"
   }
 }
