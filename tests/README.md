@@ -8,5 +8,5 @@
 
 In the out directory,
 
-1. `landmarks.txt`: On each line, all the vertices which are landmarks
-2. `answers.txt`: The output of each query given the landmarks of each sampling.
+1. `landmarks.txt`: On each line, the number of vertices at that level followed by all the vertices which are landmarks, all space-separated.
+2. `answers.txt`: The output of each query given the landmarks of each sampling on a new line.

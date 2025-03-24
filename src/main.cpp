@@ -33,6 +33,7 @@ class ApproxDistanceOracles {
    public:
     Graph* graph;
     int k;
+    bool test_mode;
 
     vector<vector<int>> landmarks;  // landmarks[i] = landmarks at level i
     vector<int> rank;               // rank[v] = highest level a vertex is in.
@@ -40,7 +41,8 @@ class ApproxDistanceOracles {
     vector<vector<double>> focus_distance;    // corresponding focus distances
     vector<unordered_map<int, double>> ball;  // ball[v] = ball of vertex v
 
-    ApproxDistanceOracles(Graph* graph, int k) : graph(graph), k(k) {
+    ApproxDistanceOracles(Graph* graph, int k, bool tm)
+        : graph(graph), k(k), test_mode(tm) {
         if (k <= 0) {
             cerr << "Invalid number of levels: " << k << endl;
             return;
@@ -51,6 +53,14 @@ class ApproxDistanceOracles {
         focus.resize(graph->n, vector<int>(k, -1));
         focus_distance.resize(graph->n, vector<double>(k, INF));
         ball.resize(graph->n);
+    }
+
+    void updateRank() {
+        for (int i = 0; i < k; i++) {
+            for (int v : landmarks[i]) {
+                rank[v] = i;
+            }
+        }
     }
 
     void chooseLandmarks() {
@@ -70,11 +80,7 @@ class ApproxDistanceOracles {
             }
         }
 
-        for (int i = 0; i < k; i++) {
-            for (int v : landmarks[i]) {
-                rank[v] = i;
-            }
-        }
+        updateRank();
     }
 
     void printLandmarks() {
@@ -178,7 +184,7 @@ class ApproxDistanceOracles {
         // Populate the ball for vertex v with only those vertices with a valid
         // distance.
         for (int u = 0; u < graph->n; u++) {
-            if (u == v) continue;
+            // if (u == v) continue;
             if (dist[u] < threshold && rank[u] == level &&
                 (level == k - 1 || dist[u] < focus_distance[u][level + 1])) {
                 ball[v][u] = dist[u];
@@ -196,8 +202,15 @@ class ApproxDistanceOracles {
         }
     }
 
-    void preprocess() {
-        chooseLandmarks();
+    void preprocess(const vector<vector<int>>& cust_land) {
+        if (test_mode == 1) {
+            for (int i = 0; i < k; i++) {
+                landmarks[i] = cust_land[i];
+            }
+            updateRank();
+        } else {
+            chooseLandmarks();
+        }
 
         for (int i = 0; i < k; i++) {
             multiSourceDijkstra(landmarks[i], i);
@@ -211,10 +224,13 @@ class ApproxDistanceOracles {
     }
 
     double query(int u, int v) {
+        if (u < 0 || v < 0 || u >= graph->n || v >= graph->n) {
+            cerr << "Invalid query: " << u << " --?--> " << v << endl;
+            return INF;
+        }
         if (u == v) return 0.0;
 
         int i = 0;
-        int a = u, b = v;
         int w = u;
         while (ball[v].find(w) == ball[v].end()) {
             i++;
@@ -224,18 +240,20 @@ class ApproxDistanceOracles {
             if (w < 0) break;
         }
 
-        double d_u_w = (i < k ? focus_distance[u][i] : INF);
+        double d_u_w = (ball[u].find(w) != ball[u].end() ? ball[u][w] : INF);
         double d_v_w = (ball[v].find(w) != ball[v].end() ? ball[v][w] : INF);
 
-        if (d_u_w < INF && d_v_w < INF) return d_u_w + d_v_w;
-
-        return focus_distance[a][k - 1] + focus_distance[b][k - 1];
+        if (d_u_w < INF && d_v_w < INF)
+            return d_u_w + d_v_w;
+        else
+            return INF;
     }
 };
 
 int main(int argc, char* argv[]) {
-    if (argc != 4) {
-        cerr << "Invalid input arguments." << endl;
+    if (argc < 4) {
+        cerr << "Too few input arguments. Need at least 4, received " << argc
+             << "." << endl;
         return 1;
     }
     string parameter_file = argv[1];
@@ -274,12 +292,73 @@ int main(int argc, char* argv[]) {
 
     clog << "Read graph with " << m << " edges." << endl;
 
-    ApproxDistanceOracles oracle(&graph, k);
-    oracle.preprocess();
-    // oracle.printLandmarks();
-    // oracle.printFocii();
-    // oracle.printBalls();
-    cout << oracle.query(2, 4) << endl;
+    ApproxDistanceOracles oracle(&graph, k, test_mode);
+
+    if (test_mode == 1) {
+        if (argc != 6) {
+            cerr << "In test mode, invalid input arguments. Needed 6, received "
+                 << argc << "." << endl;
+            return 1;
+        }
+    }
+
+    if (test_mode == 1) {
+        string landmarks_file = argv[4];
+
+        ifstream landFile(landmarks_file);
+        if (!landFile.is_open()) {
+            cerr << "Unable to open landmarks file: " << landmarks_file << endl;
+            return 1;
+        }
+
+        vector<vector<int>> cust_land(k);
+        for (int i = 0; i < k; i++) {
+            int l;
+            landFile >> l;
+            cust_land[i].resize(l);
+            for (int j = 0; j < l; j++) {
+                landFile >> cust_land[i][j];
+            }
+        }
+
+        oracle.preprocess(cust_land);
+    } else {
+        oracle.preprocess(vector<vector<int>>());
+    }
+
+    oracle.printLandmarks();
+    oracle.printFocii();
+    oracle.printBalls();
+
+    ifstream queryFile(query_file);
+    if (!queryFile.is_open()) {
+        cerr << "Unable to open queries file: " << query_file << endl;
+        return 1;
+    }
+
+    string answers_file = argv[5];
+    ifstream answersFile(answers_file);
+    if (!answersFile.is_open()) {
+        cerr << "Unable to open answers file: " << answers_file << endl;
+        return 1;
+    }
+
+    u = 0;
+    v = 0;
+    while (queryFile >> u >> v) {
+        double ans = oracle.query(u, v);
+        // if (answersFile >> w) {
+        //     if (abs(ans - w) > 1e-6) {
+        //         cerr << "Incorrect answer for query: " << u << " --?--> " <<
+        //         v
+        //              << ". Expected: " << w << ", Received: " << ans << endl;
+        //     }
+        // } else {
+        //     cerr << "Too few answers in file: " << answers_file << endl;
+        //     return 1;
+        // }
+        clog << u << " " << v << ": " << ans << endl;
+    }
 
     return 0;
 }
