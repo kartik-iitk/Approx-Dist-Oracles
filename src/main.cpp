@@ -8,6 +8,7 @@ class Graph {
    public:
     int n;
     vector<vector<pair<int, double>>> adj;  // Adjacency List
+    vector<vector<double>> trueDist;
 
     Graph(int n) : n(n) {
         if (n <= 0) {
@@ -15,6 +16,7 @@ class Graph {
             return;
         }
         adj.resize(n);
+        trueDist.resize(n, vector<double>(n, INF));
     }
 
     void addEdge(int u, int v, double w) {
@@ -26,6 +28,26 @@ class Graph {
         clog << "Adding edge: " << u << " --(" << w << ")--> " << v << endl;
         adj[u].push_back(make_pair(v, w));
         adj[v].push_back(make_pair(u, w));
+    }
+
+    void allPairsShortest() {
+        for (int i = 0; i < n; i++) {
+            trueDist[i][i] = 0;
+            for (auto& [v, w] : adj[i]) {
+                trueDist[i][v] = w;
+            }
+        }
+
+        for (int k = 0; k < n; k++) {
+            for (int i = 0; i < n; i++) {
+                for (int j = 0; j < n; j++) {
+                    if (trueDist[i][k] < INF && trueDist[k][j] < INF) {
+                        trueDist[i][j] = min(trueDist[i][j],
+                                             trueDist[i][k] + trueDist[k][j]);
+                    }
+                }
+            }
+        }
     }
 };
 
@@ -311,6 +333,11 @@ int main(int argc, char* argv[]) {
             return 1;
         }
 
+        if (landFile.peek() == ifstream::traits_type::eof()) {
+            cerr << "Landmarks file is empty." << endl;
+            return 1;
+        }
+
         vector<vector<int>> cust_land(k);
         for (int i = 0; i < k; i++) {
             int l;
@@ -337,28 +364,61 @@ int main(int argc, char* argv[]) {
     }
 
     string answers_file = argv[5];
-    ifstream answersFile(answers_file);
-    if (!answersFile.is_open()) {
-        cerr << "Unable to open answers file: " << answers_file << endl;
-        return 1;
+    // First, check if the answers file is empty.
+    ifstream answersFile_check(answers_file);
+    bool generating_answers = false;
+    if (!answersFile_check.good() ||
+        answersFile_check.peek() == ifstream::traits_type::eof()) {
+        generating_answers = true;
+    }
+    answersFile_check.close();
+
+    if (generating_answers) {
+        // If the file is empty, open an output stream to generate answers.
+        ofstream answersFile_out(answers_file, ios::trunc);
+        if (!answersFile_out.is_open()) {
+            cerr << "Unable to open answers file: " << answers_file << endl;
+            return 1;
+        }
+        if (test_mode == 1) {
+            graph.allPairsShortest();
+        }
+        while (queryFile >> u >> v) {
+            double ans = oracle.query(u, v);
+            double true_ans = graph.trueDist[u][v];
+            answersFile_out << true_ans << endl;
+            clog << "Query: " << u << " --> " << v << "; Result: " << ans
+                 << "; True Distance: " << true_ans << endl;
+        }
+        answersFile_out.close();
+    } else {
+        // Otherwise, open an input stream to read the provided answers.
+        ifstream answersFile_in(answers_file);
+        if (!answersFile_in.is_open()) {
+            cerr << "Unable to open answers file: " << answers_file << endl;
+            return 1;
+        }
+        while (queryFile >> u >> v) {
+            double ans = oracle.query(u, v);
+            double true_ans;
+            if (answersFile_in >> true_ans) {
+                if (ans < true_ans || ans > (2 * k - 1) * true_ans) {
+                    cerr << "Incorrect answer for query: " << u << " --?--> "
+                         << v << ". Expected: " << true_ans
+                         << ", Received: " << ans << endl;
+                } else {
+                    clog << u << " " << v << ": " << ans << endl;
+                }
+            } else {
+                cerr << "Too few answers in file. Rerun by emptying file: "
+                     << answers_file << endl;
+                return 1;
+            }
+        }
+        answersFile_in.close();
     }
 
-    u = 0;
-    v = 0;
-    while (queryFile >> u >> v) {
-        double ans = oracle.query(u, v);
-        // if (answersFile >> w) {
-        //     if (abs(ans - w) > 1e-6) {
-        //         cerr << "Incorrect answer for query: " << u << " --?--> " <<
-        //         v
-        //              << ". Expected: " << w << ", Received: " << ans << endl;
-        //     }
-        // } else {
-        //     cerr << "Too few answers in file: " << answers_file << endl;
-        //     return 1;
-        // }
-        clog << u << " " << v << ": " << ans << endl;
-    }
+    queryFile.close();
 
     return 0;
 }
