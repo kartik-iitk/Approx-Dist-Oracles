@@ -17,10 +17,16 @@ query() {
 Levels are 0-indexed
 
 Landmark[k + 1] = chosen vertex at sampling i, last sampling is empty (a vertex which is in sampling i was also part of all the samplings of samplings <= i; we can define rank/level as the highest sampling to which a vertex can belong)
-Focus[v][i] = Closest landmark of vertex v from landmarks of sampling i.
+Focus[v][i] = Closest landmark of vertex v from landmarks from Landmark[i+1].
 Ball[v] = For vertex v, stores a unordered map (hash-table) of pairs of (vertex, distance) of curated vertices.
 
 Insights:
 1. choosing non-increasing sequence of landmark vertices is done so that we can ensure that focus of higher level is always the same or farther than the lower level.
 2. The stretch need not always be large, as the query can return before that when the stretch is lower.
-
+3. Trimmed Dijkstra
+    - Invariant of dijkstra means that the top of the priority queue has the shortest distance in the jth iteration.
+    - removing and pushing to priority queue requires O(logn). Hence we want to minimize the number of pushes to the queue (i.e. neighbors of the top node). This condition could not be possibly controlled if we were looking to create ball of v starting from v as you never know you could get a shorter path (sub-tree condition does not hold).
+    - If v belongs to ith level then it will update the (i)th level balls of other vertices.
+    - You need rank(v) number of function calls of trimmed dijkstra for a vertex v. And with the above optimisation, you cannot resuse the distance array as all necessary vertices may not have been relaxed leading to incorrect distances.
+    - If x is a vertex in group of v, and if we do not consider any point which is not in the group(v) we still have the shortest path from v to x during dijstra. (Needs Proof)
+    - 

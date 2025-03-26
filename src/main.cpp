@@ -93,25 +93,24 @@ class ApproxDistanceOracles {
         }
     }
 
+    // Time Complexity: O((m + n)logn). Here, we would usually look for graphs
+    // with m > n. So the time complexity is O(mlogn).
     void multiSourceDijkstra(const vector<int>& sources, int level) {
-        // Check if sources are valid
+        priority_queue<pair<double, int>, vector<pair<double, int>>,
+                       greater<pair<double, int>>>
+            pq;
+        vector<double> dist(graph->n, INF);
+        vector<double> parent(
+            graph->n, -1);  // Stores which of the sources led to the vertex.
+
         for (int src : sources) {
             if (src < 0 || src >= graph->n) {
                 cerr << "Invalid source: " << src << endl;
                 return;
             }
-        }
-
-        priority_queue<pair<double, int>, vector<pair<double, int>>,
-                       greater<pair<double, int>>>
-            pq;
-        vector<double> dist(graph->n, INF);
-
-        for (int src : sources) {
-            pq.push({0, src});
+            pq.push({0, src});  // Equivalent to using dummy node.
             dist[src] = 0;
-            focus[src][level] = src;
-            focus_distance[src][level] = 0.0;
+            parent[src] = src;  // The source's parent is itself.
         }
 
         while (!pq.empty()) {
@@ -123,11 +122,17 @@ class ApproxDistanceOracles {
             for (auto& [v, w] : graph->adj[u]) {
                 if (dist[u] + w < dist[v]) {
                     dist[v] = dist[u] + w;
+                    parent[v] =
+                        parent[u];  // Set the original source that led to u.
                     pq.push({dist[v], v});
-                    focus[v][level] = focus[u][level];
-                    focus_distance[v][level] = dist[v];
                 }
             }
+        }
+
+        // Update the focus arrays of all vertices.
+        for (int v = 0; v < graph->n; v++) {
+            focus[v][level - 1] = parent[v];
+            focus_distance[v][level - 1] = dist[v];
         }
     }
 
@@ -142,14 +147,7 @@ class ApproxDistanceOracles {
         }
     }
 
-    void truncatedDijkstra(int v, int level) {
-        // Define the threshold for truncation for vertex v.
-        double threshold =
-            (level == k - 1) ? INF : focus_distance[v][level + 1];
-
-        // clog << "For vertex: " << v << " level: " << level << " " <<
-        // threshold
-        //      << endl;
+    void trimmedDijkstra(int v, int level) {
         priority_queue<pair<double, int>, vector<pair<double, int>>,
                        greater<pair<double, int>>>
             pq;
@@ -162,32 +160,14 @@ class ApproxDistanceOracles {
             auto [d, u] = pq.top();
             pq.pop();
 
-            if (d > dist[u]) continue;
-            // Truncate if the current distance reaches the threshold.
-            if (d >= threshold) continue;
-
             for (auto& [w, wgt] : graph->adj[u]) {
                 double nd = d + wgt;
-                // Do not relax paths that exceed the threshold.
-                if (nd >= threshold) continue;
-                // For levels with a next-level focus, ensure the new distance
-                // is less than the focus distance.
-                if (level < k - 1 && nd >= focus_distance[w][level + 1])
-                    continue;
-                if (nd < dist[w]) {
+                if (nd < dist[w] && nd < focus_distance[w][level]) {
+                    // 2nd condition is the group condition.
                     dist[w] = nd;
                     pq.push({nd, w});
+                    ball[w][v] = nd;  // Inserts if not present, else updates.
                 }
-            }
-        }
-
-        // Populate the ball for vertex v with only those vertices with a valid
-        // distance.
-        for (int u = 0; u < graph->n; u++) {
-            // if (u == v) continue;
-            if (dist[u] < threshold && rank[u] == level &&
-                (level == k - 1 || dist[u] < focus_distance[u][level + 1])) {
-                ball[v][u] = dist[u];
             }
         }
     }
@@ -212,13 +192,18 @@ class ApproxDistanceOracles {
             chooseLandmarks();
         }
 
-        for (int i = 0; i < k; i++) {
+        for (int i = 1; i < k; i++) {
             multiSourceDijkstra(landmarks[i], i);
         }
+        // For i = k, we don't run above loop as the focus is assumed at
+        // infinity. This ensures that when we compute the groups while running
+        // trimmedDijkstra, we will equivalently run plain Dijkstra for the last
+        // level. Thus, the outermost ball of every vertex stores the distance
+        // to all the highest rank landmark vertices.
 
-        for (int v = 0; v < graph->n; v++) {
-            for (int i = 0; i < k; i++) {
-                truncatedDijkstra(v, i);
+        for (int i = 0; i < k; i++) {
+            for (int v : landmarks[i]) {
+                trimmedDijkstra(v, i);
             }
         }
     }
@@ -236,12 +221,27 @@ class ApproxDistanceOracles {
             i++;
             if (i >= k) break;
             swap(u, v);
-            w = focus[u][i];
+            w = focus[u][i - 1];
             if (w < 0) break;
         }
 
-        double d_u_w = (ball[u].find(w) != ball[u].end() ? ball[u][w] : INF);
-        double d_v_w = (ball[v].find(w) != ball[v].end() ? ball[v][w] : INF);
+        double d_u_w;
+        if (u == w) {
+            d_u_w = 0.0;
+        } else if (ball[u].find(w) != ball[u].end()) {
+            d_u_w = ball[u][w];
+        } else {
+            d_u_w = INF;
+        }
+
+        double d_v_w;
+        if (v == w) {
+            d_v_w = 0.0;
+        } else if (ball[v].find(w) != ball[v].end()) {
+            d_v_w = ball[v][w];
+        } else {
+            d_v_w = INF;
+        }
 
         if (d_u_w < INF && d_v_w < INF)
             return d_u_w + d_v_w;

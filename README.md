@@ -27,7 +27,7 @@ This will generate an executable approx_dist_oracle
 
 ## How to run
 
-From the main directory,
+From the main directory, for running normally,
 
 ```bash
 cd build
@@ -38,11 +38,12 @@ cd build
 
 1. Raw algorithm and Test Cases
 2. Path Similarity Comparison
-3. Design Test cases:
+3. Convert to Las Vegas.
+5. Design Test cases:
    - Geomaps
    - Social Networks
    - Wireless Networks
-4. Insights on multiple graphs
+6. Insights on multiple graphs
    - Graph Size (Scalability)
    - Density
    - Effect of k
