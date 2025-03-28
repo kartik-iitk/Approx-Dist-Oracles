@@ -3,6 +3,10 @@
 #include "ApproxDistanceOracles.h"
 #include "Graph.h"
 
+const int test_case =
+    3;  // For different types of input, to allow for customisation. Using
+        // default 1 follows the conventions of the README.
+
 int main(int argc, char* argv[]) {
     if (argc < 4) {
         std::cerr << "Too few input arguments. Need at least 4, received "
@@ -39,7 +43,19 @@ int main(int argc, char* argv[]) {
     int u, v, m = 0;
     double w;
     while (graphFile >> u >> v >> w) {
-        graph.addEdge(u, v, w);
+        switch (test_case) {
+            case 1:
+                graph.addBothEdges(u, v, w);
+                break;
+
+            case 2:
+                graph.addBothEdges(u, v, w);
+                break;
+
+            case 3:
+                graph.addSingleEdge(u - 1, v - 1, w);
+                break;
+        }
         m++;
     }
     graphFile.close();
@@ -115,10 +131,18 @@ int main(int argc, char* argv[]) {
                       << std::endl;
             return 1;
         }
-        if (test_mode == 1) {
-            graph.allPairsShortest();
-        }
+        graph.allPairsShortest();
         while (queryFile >> u >> v) {
+            switch (test_case) {
+                case 1:
+                    break;
+                case 2:
+                    break;
+                case 3:
+                    u--;
+                    v--;
+                    break;
+            }
             double ans = oracle.query(u, v);
             double true_ans = graph.trueDist[u][v];
             answersFile_out << true_ans << std::endl;
@@ -135,6 +159,16 @@ int main(int argc, char* argv[]) {
             return 1;
         }
         while (queryFile >> u >> v) {
+            switch (test_case) {
+                case 1:
+                    break;
+                case 2:
+                    break;
+                case 3:
+                    u--;
+                    v--;
+                    break;
+            }
             double ans = oracle.query(u, v);
             double true_ans;
             if (answersFile_in >> true_ans) {

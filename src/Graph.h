@@ -14,7 +14,8 @@ class Graph {
     std::vector<std::vector<double>> trueDist;
 
     Graph(int n);
-    void addEdge(int u, int v, double w);
+    void addBothEdges(int u, int v, double w);
+    void addSingleEdge(int u, int v, double w);
     void allPairsShortest();
 };
 

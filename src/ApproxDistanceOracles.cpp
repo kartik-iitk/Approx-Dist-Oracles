@@ -46,7 +46,8 @@ void ApproxDistanceOracles::chooseLandmarks() {
 
 void ApproxDistanceOracles::printLandmarks() {
     for (int i = 0; i < k; i++) {
-        std::cout << "Level " << i << " landmarks: ";
+        std::cout << "Level " << i << " landmarks (" << landmarks[i].size()
+                  << "): ";
         for (int v : landmarks[i]) {
             std::cout << v << " ";
         }

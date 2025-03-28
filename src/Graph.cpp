@@ -9,7 +9,7 @@ Graph::Graph(int n) : n(n) {
     trueDist.resize(n, std::vector<double>(n, INF));
 }
 
-void Graph::addEdge(int u, int v, double w) {
+void Graph::addBothEdges(int u, int v, double w) {
     if (u < 0 || v < 0 || u >= n || v >= n) {
         std::cerr << "Invalid edge: " << u << " --(" << w << ")--> " << v
                   << std::endl;
@@ -19,6 +19,17 @@ void Graph::addEdge(int u, int v, double w) {
               << std::endl;
     adj[u].push_back(std::make_pair(v, w));
     adj[v].push_back(std::make_pair(u, w));
+}
+
+void Graph::addSingleEdge(int u, int v, double w) {
+    if (u < 0 || v < 0 || u >= n || v >= n) {
+        std::cerr << "Invalid edge: " << u << " --(" << w << ")--> " << v
+                  << std::endl;
+        return;
+    }
+    std::clog << "Adding edge: " << u << " --(" << w << ")--> " << v
+              << std::endl;
+    adj[u].push_back(std::make_pair(v, w));
 }
 
 void Graph::allPairsShortest() {

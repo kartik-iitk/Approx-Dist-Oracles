@@ -1,4 +1,4 @@
-# Approx-Dist-Oracles
+# Approximate Distance Oracles
 
 ## CS648 Mini Project 2024-25-II
 
@@ -12,13 +12,14 @@
 
 ## Requirements
 
-- CMake Version > 3.10
+- CMake Version >= 3.10
 - G++ Version 6.3.0 **OR** Apple clang version 16.0.0
 
 ## How to compile
 
 ```bash
-cd build
+rm -rf build
+mkdir build && cd build
 cmake ..
 make
 ```
@@ -31,7 +32,20 @@ From the main directory, for running normally,
 
 ```bash
 cd build
-./approx_dist_oracle <parameter_file.txt> <graph.txt> <queries.txt>
+./approx_dist_oracle <parameter_file.txt> <graph_file.txt> <queries_file.txt>
+```
+
+For test runs, set appropriate parameters and update the landmarks and run:
+
+```bash
+cd build
+./approx_dist_oracle <parameter_file.txt> <graph_file.txt> <queries_file.txt> <landmarks_file.txt> <answers_file.txt>
+```
+
+Eg:
+
+```bash
+./approx_dist_oracle ../tests/test3/parameters.txt ../tests/test3/graph.txt ../tests/test3/queries.txt ../tests/test3/out/landmarks.txt ../tests/test3/out/answers.txt
 ```
 
 ## Implementation Phases
@@ -39,11 +53,11 @@ cd build
 1. Raw algorithm and Test Cases
 2. Path Similarity Comparison
 3. Convert to Las Vegas.
-5. Design Test cases:
+4. Design Test cases:
    - Geomaps
    - Social Networks
    - Wireless Networks
-6. Insights on multiple graphs
+5. Insights on multiple graphs
    - Graph Size (Scalability)
    - Density
    - Effect of k
