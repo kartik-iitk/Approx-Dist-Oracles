@@ -12,8 +12,12 @@ if(APPLE)
         )
     endif()
 
-# Get all source files from src directory
-file(GLOB_RECURSE SOURCES "src/*.cpp")
+# Source files
+set(SOURCES
+    src/Graph.cpp
+    src/ApproxDistanceOracles.cpp
+    src/main.cpp
+)
 
 # Define the executable
 add_executable(approx_dist_oracle ${SOURCES})

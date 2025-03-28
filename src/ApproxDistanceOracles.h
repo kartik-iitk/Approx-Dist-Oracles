@@ -1,0 +1,37 @@
+#ifndef APPROXDISTANCEORACLES_H
+#define APPROXDISTANCEORACLES_H
+
+#include <iostream>
+#include <numeric>
+#include <queue>
+#include <random>
+#include <unordered_map>
+#include <vector>
+
+#include "Graph.h"
+
+class ApproxDistanceOracles {
+   public:
+    Graph* graph;
+    int k;
+    bool test_mode;
+
+    std::vector<std::vector<int>> landmarks;
+    std::vector<int> rank;
+    std::vector<std::vector<int>> focus;
+    std::vector<std::vector<double>> focus_distance;
+    std::vector<std::unordered_map<int, double>> ball;
+
+    ApproxDistanceOracles(Graph* graph, int k, bool tm);
+    void updateRank();
+    void chooseLandmarks();
+    void printLandmarks();
+    void multiSourceDijkstra(const std::vector<int>& sources, int level);
+    void printFocii();
+    void trimmedDijkstra(int v, int level);
+    void printBalls();
+    void preprocess(const std::vector<std::vector<int>>& cust_land);
+    double query(int u, int v);
+};
+
+#endif  // APPROXDISTANCEORACLES_H
