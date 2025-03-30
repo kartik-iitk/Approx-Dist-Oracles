@@ -29,4 +29,4 @@ Insights:
     - If v belongs to ith level then it will update the (i)th level balls of other vertices.
     - You need rank(v) number of function calls of trimmed dijkstra for a vertex v. And with the above optimisation, you cannot resuse the distance array as all necessary vertices may not have been relaxed leading to incorrect distances.
     - If x is a vertex in group of v, and if we do not consider any point which is not in the group(v) we still have the shortest path from v to x during dijstra. (Needs Proof)
-    - 
+    - The ball of a vertex remains empty if it is the only vertex of the highest level.
