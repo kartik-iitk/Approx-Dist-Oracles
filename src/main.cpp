@@ -54,6 +54,9 @@ int main(int argc, char* argv[]) {
             case 3:
                 graph.addSingleEdge(u - 1, v - 1, w);
                 break;
+            case 4:
+                graph.addBothEdges(u - 1, v - 1, w);
+                break;
         }
         m++;
     }
@@ -139,6 +142,10 @@ int main(int argc, char* argv[]) {
                     break;
                 case 3:
                     u--;
+                    v--;
+                    break;
+                case 4: 
+                    u--; 
                     v--;
                     break;
             }
