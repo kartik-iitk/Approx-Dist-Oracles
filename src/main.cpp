@@ -3,10 +3,6 @@
 #include "ApproxDistanceOracles.h"
 #include "Graph.h"
 
-const int test_case =
-    3;  // For different types of input, to allow for customisation. Using
-        // default 1 follows the conventions of the README.
-
 int main(int argc, char* argv[]) {
     if (argc < 4) {
         std::cerr << "Too few input arguments. Need at least 4, received "
@@ -25,8 +21,11 @@ int main(int argc, char* argv[]) {
     }
 
     int n, k;
+    int test_case =
+        1;  // For different types of input, to allow for customisation.
+            // Using default 1 follows the conventions of the README.;
     bool test_mode;
-    paramFile >> n >> k >> test_mode;
+    paramFile >> n >> k >> test_mode >> test_case;
     paramFile.close();
 
     std::clog << "Read parameters: n=" << n << ", k=" << k

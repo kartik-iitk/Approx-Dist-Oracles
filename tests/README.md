@@ -3,6 +3,7 @@
    n # Number of vertices
    k # For the algorithm
    test_mode # To set if landmarks are chosen randomly or input by the user.
+   test_case_number # For different input formats. Use 1 if unsure.
 3. `queries.txt`: On each line, `vertex1, vertex2`
 
 In the `./out` directory,
