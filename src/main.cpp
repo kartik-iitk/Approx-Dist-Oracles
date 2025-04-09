@@ -99,11 +99,12 @@ int main(int argc, char* argv[]) {
                 landFile >> cust_land[i][j];
             }
         }
-
+        std::clog << "Preprocessing started." << std::endl;
         oracle.preprocess(cust_land);
     } else {
         oracle.preprocess(std::vector<std::vector<int>>());
     }
+    std::clog << "Preprocessing completed." << std::endl;
 
     oracle.printLandmarks();
     oracle.printFocii();
@@ -144,8 +145,8 @@ int main(int argc, char* argv[]) {
                     u--;
                     v--;
                     break;
-                case 4: 
-                    u--; 
+                case 4:
+                    u--;
                     v--;
                     break;
             }

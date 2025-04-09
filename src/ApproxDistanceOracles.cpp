@@ -13,7 +13,9 @@ ApproxDistanceOracles::ApproxDistanceOracles(Graph* graph, int k, bool tm)
     focus_distance.resize(
         graph->n,
         std::vector<double>(k, std::numeric_limits<double>::infinity()));
-    ball.resize(graph->n);
+    ball.resize(graph->n, std::vector<std::queue<std::pair<int, double>>>(k));
+    ball_map.resize(
+        graph->n, fph::MetaFphMap<int, double, fph::meta::MixSeedHash<int>>());
 }
 
 void ApproxDistanceOracles::updateRank() {
@@ -131,19 +133,50 @@ void ApproxDistanceOracles::trimmedDijkstra(int v, int level) {
                 // 2nd condition is the group condition.
                 dist[w] = nd;
                 pq.push({nd, w});
-                ball[w][v] = nd;  // Inserts if not present, else updates.
             }
+        }
+    }
+
+    // Update the ball of all vertices in the group.
+    for (int w = 0; w < graph->n; w++) {
+        if (dist[w] < INF) {
+            ball[w][level].push({v, dist[w]});
         }
     }
 }
 
 void ApproxDistanceOracles::printBalls() {
     for (int v = 0; v < graph->n; v++) {
-        std::clog << "Ball of vertex " << v << ": ";
-        for (auto& [u, d] : ball[v]) {
-            std::clog << "(" << u << ", " << d << ") ";
+        std::clog << "Ball of vertex " << v << ": " << std::endl;
+        for (int i = 0; i < k; i++) {
+            int q_size = ball[v][i].size();
+            std::clog << "  Level " << i << ": ";
+            for (int iter = 0; iter < q_size; iter++) {
+                auto it = ball[v][i].front();
+                std::clog << "(" << it.first << ", " << it.second << ") ";
+                ball[v][i].pop();
+                ball[v][i].push(it);
+            }
+            std::clog << std::endl;
         }
         std::clog << std::endl;
+    }
+}
+
+void ApproxDistanceOracles::hashBalls() {
+    for (int v = 0; v < graph->n; v++) {
+        std::vector<std::pair<int, double>> flat_data;
+        for (auto& q : ball[v]) {
+            int q_size = q.size();
+            for (int iter = 0; iter < q_size; iter++) {
+                auto it = q.front();
+                flat_data.push_back(it);
+                q.pop();
+                q.push(it);
+            }
+        }
+        ball_map[v].insert(flat_data.begin(), flat_data.end());
+        ball_map[v].rehash(ball_map[v].size());
     }
 }
 
@@ -172,6 +205,9 @@ void ApproxDistanceOracles::preprocess(
             trimmedDijkstra(v, i);
         }
     }
+    std::clog << "Trimmed Dijstra completed." << std::endl;
+    hashBalls();
+    std::clog << "Hash Balls completed." << std::endl;
 }
 
 double ApproxDistanceOracles::query(int u, int v) {
@@ -183,7 +219,7 @@ double ApproxDistanceOracles::query(int u, int v) {
 
     int i = 0;
     int w = u;
-    while (ball[v].find(w) == ball[v].end()) {
+    while (!ball_map[v].contains(w)) {
         i++;
         if (i >= k) break;
         std::swap(u, v);
@@ -194,8 +230,8 @@ double ApproxDistanceOracles::query(int u, int v) {
     double d_u_w;
     if (u == w) {
         d_u_w = 0.0;
-    } else if (ball[u].find(w) != ball[u].end()) {
-        d_u_w = ball[u][w];
+    } else if (ball_map[u].contains(w)) {
+        d_u_w = ball_map[u][w];
     } else {
         d_u_w = INF;
     }
@@ -203,8 +239,8 @@ double ApproxDistanceOracles::query(int u, int v) {
     double d_v_w;
     if (v == w) {
         d_v_w = 0.0;
-    } else if (ball[v].find(w) != ball[v].end()) {
-        d_v_w = ball[v][w];
+    } else if (ball_map[v].contains(w)) {
+        d_v_w = ball_map[v][w];
     } else {
         d_v_w = INF;
     }

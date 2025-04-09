@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "Graph.h"
+#include "fph/meta_fph_table.h"
 
 class ApproxDistanceOracles {
    public:
@@ -20,7 +21,10 @@ class ApproxDistanceOracles {
     std::vector<int> rank;
     std::vector<std::vector<int>> focus;
     std::vector<std::vector<double>> focus_distance;
-    std::vector<std::unordered_map<int, double>> ball;
+    std::vector<std::vector<std::queue<std::pair<int, double>>>>
+        ball;  // Level-wise
+    std::vector<fph::MetaFphMap<int, double, fph::meta::MixSeedHash<int>>>
+        ball_map;
 
     ApproxDistanceOracles(Graph* graph, int k, bool tm);
     void updateRank();
@@ -30,6 +34,7 @@ class ApproxDistanceOracles {
     void printFocii();
     void trimmedDijkstra(int v, int level);
     void printBalls();
+    void hashBalls();
     void preprocess(const std::vector<std::vector<int>>& cust_land);
     double query(int u, int v);
 };

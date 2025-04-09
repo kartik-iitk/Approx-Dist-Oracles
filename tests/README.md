@@ -1,3 +1,13 @@
+# Testing Data Format
+
+## Organisation:
+
+- All tests are in their respective folders.
+
+
+## Steps for conversion:
+1. Use the script `../src/preprocess.py` to convert the `unprocessed.txt` to  `edges
+
 1. `graph.txt`: On each line, `vertex1, vertex2, edge_weight`
 2. `parameter.txt`: On each line,
    n # Number of vertices
