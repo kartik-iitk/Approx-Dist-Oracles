@@ -1,8 +1,8 @@
 Read parameters: n = 6, k = 5, num_threads = 1, one_indexed = 1, both = 0, spaceopt = 0, verbose = 1, debug = 1
 Graph loaded with 6 vertices.
 Read custom landmarks.
-Hashing time: 0.091833 ms
-Preprocessing completed.
+Total space used: 30 words, and required limit: 6000 words
+Preprocessing completed in 1 run(s) in 0.171917ms
 
 Focii of vertex 0: (2, 3) (2, 3) (-1, inf) (-1, inf) (-1, inf) 
 Focii of vertex 1: (2, 1) (2, 1) (-1, inf) (-1, inf) (-1, inf) 

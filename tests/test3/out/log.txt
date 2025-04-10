@@ -1,7 +1,7 @@
 Read parameters: n = 26, k = 2, num_threads = 1, one_indexed = 1, both = 1, spaceopt = 0, verbose = 1, debug = 0
 Graph loaded with 26 vertices.
-Hashing time: 1.14246 ms
-Preprocessing completed.
+Total space used: 540 words, and required limit: 31200 words
+Preprocessing completed in 1 run(s) in 1.6775ms
 
 Focii of vertex 0: (18, 52) (-1, inf) 
 Focii of vertex 1: (24, 49) (-1, inf) 

@@ -1,5 +1,6 @@
 import argparse
 import random
+import os
 
 
 def generate_queries_uniform(num_nodes, num_queries, is_one_indexed):
@@ -53,14 +54,7 @@ def write_queries_to_file(queries, output_file):
 
 def main():
     parser = argparse.ArgumentParser(description="Query Generation")
-    parser.add_argument("-n", type=int, help="Total number of nodes in the graph")
-    parser.add_argument(
-        "-i",
-        type=int,
-        choices=[0, 1],
-        help="Specify whether the graph is zero-indexed or one-indexed (default: zero)",
-    )
-    parser.add_argument("-o", type=str, help="Output file for queries")
+    parser.add_argument("-t", type=str, required=True, help="Test Case Folder")
     parser.add_argument(
         "-m",
         choices=["uniform", "with_self", "all"],
@@ -76,19 +70,45 @@ def main():
 
     args = parser.parse_args()
 
-    is_one_indexed = args.i == 1
+    parameters_file = args.t + "/inp/parameters.txt"
+    parameters = {}
+    with open(parameters_file, "r") as file:
+        for i, line in enumerate(file, start=1):
+            value = int(line.strip())
+            if i == 1:
+                parameters["n"] = value
+            elif i == 2:
+                parameters["k"] = value
+            elif i == 3:
+                parameters["num_threads"] = value
+            elif i == 4:
+                parameters["g"] = value
+            elif i == 5:
+                parameters["both"] = True if value == 1 else False
+            elif i == 6:
+                parameters["spaceopt"] = True if value == 1 else False
+            elif i == 7:
+                parameters["verbose"] = True if value == 1 else False
+            elif i == 8:
+                parameters["debug"] = True if value == 1 else False
+
+    is_one_indexed = True if parameters["g"] == 1 else False
 
     queries = []
     if args.m == "uniform":
-        queries = generate_queries_uniform(args.n, args.q, is_one_indexed)
+        queries = generate_queries_uniform(parameters["n"], args.q, is_one_indexed)
     elif args.m == "all":
-        queries = generate_all_queries(args.n, is_one_indexed)
+        queries = generate_all_queries(parameters["n"], is_one_indexed)
     elif args.m == "with_self":
-        queries = generate_queries_with_self(args.n, args.q, is_one_indexed)
+        queries = generate_queries_with_self(parameters["n"], args.q, is_one_indexed)
 
-    write_queries_to_file(queries, args.o)
+    outputfile = args.t + "/inp/queries.txt"
+    if os.path.exists(outputfile):
+        os.remove(outputfile)
+
+    write_queries_to_file(queries, outputfile)
     print(
-        f"Generated {len(queries)} queries using method '{args.m}' with indexing '{args.i}' written to {args.o}"
+        f"Generated {len(queries)} queries using method '{args.m}' with indexing '{parameters["g"]}' written to {outputfile}"
     )
 
 

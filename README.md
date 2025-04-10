@@ -14,6 +14,7 @@
 
 - CMake Version >= 3.10
 - G++ Version 6.3.0 **OR** Apple clang version 16.0.0
+- Python 3.11.10; External packages: Jupyter, Matplotlib
 
 ## How to compile
 
@@ -28,25 +29,36 @@ This will generate an executable approx_dist_oracle
 
 ## How to run
 
-From the main directory, for running normally,
+From the repository directory.
+
+1. Prepare the test-case folder using instructions mentioned in `./tests/README.md`
+2. Run the approximate distance oracles to get the output of all the queries using;
 
 ```bash
 cd build
-./approx_dist_oracle <parameter_file.txt> <graph_file.txt> <queries_file.txt>
-```
-
-For test runs, set appropriate parameters and update the landmarks and run:
-
-```bash
-cd build
-./approx_dist_oracle <parameter_file.txt> <graph_file.txt> <queries_file.txt> <landmarks_file.txt> <answers_file.txt>
+./approx_dist_oracle <path/to/test/case/folder>
 ```
 
 Eg:
 
 ```bash
-./approx_dist_oracle ../tests/test3/parameters.txt ../tests/test3/graph.txt ../tests/test3/queries.txt ../tests/test3/out/landmarks.txt ../tests/test3/out/answers.txt
+./approx_dist_oracle ../tests/test3
 ```
+
+3. For stretch analysis, next run the executable to get true distances.
+
+```bash
+cd build
+./true_distance <path/to/test/case/folder>
+```
+
+Eg:
+
+```bash
+./true_distance ../tests/test3
+```
+
+4. Use `./src/analysis.ipynb` for analysis and plots.
 
 ## Implementation Phases
 

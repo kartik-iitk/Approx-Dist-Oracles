@@ -5,13 +5,13 @@
 1. Put the edges file as `./test<number>/inp/graph.txt`. Ensure the edge weights in order (u, v, w) format
    Note: u, v can be 0 or 1 indexed and needs to be configured later.
 
-2. Generate queries for the testcase using `../src/querygen.py`. Choose the output-file name as `./test<number>/inp/queries.txt`. Eg:
+2. Write the input parameters for running the code in the order as given below.
+
+3. Generate queries for the testcase using `../src/querygen.py`. Choose the output-file name as `./test<number>/inp/queries.txt`. Eg: When running from the build directory, use:
 
    ```bash
-   python src/querygen.py -n 6 -i 1 -o ./tests/test1/inp/queries.txt -m uniform -q 12
+   python ../src/querygen.py -t ../tests/test1 -m uniform -q 12
    ```
-
-3. Write the input parameters for running the code in the order as given below.
 
 **Note**: For next steps, on how to run both the executables next, see the main directory's `README.md`.
 
@@ -60,4 +60,8 @@ test<num>/
 
 - `log.txt`: Error Stream output for the main executable execution. It will also contain any printing statement executed.
 
-- `runstats.txt`: All the necessary stats for the code, summarised.
+- `runstats.txt`: All the necessary stats for the code, summarised:
+  - Next integer here will store the number of preprocess calls that took place. Note: This maybe more than one in case spaceopt is enabled.
+  - Next value is the miliseconds taken by the preprocess function (combined for all calls).
+  - Next Value is the size of the datastructure in words (counting pair of d).
+  - All the next values store the query time in nano-seconds for all queries in queries.txt, each on a new line.

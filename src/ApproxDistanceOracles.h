@@ -36,8 +36,9 @@ class ApproxDistanceOracles {
     void printFocii();
     void trimmedDijkstra(int v, int level);
     void printBalls();
-    void hashBalls();
-    void preprocess(const std::vector<std::vector<int>>& cust_land);
+    long long hashBalls();
+    std::pair<long long, long long> preprocess(
+        const std::vector<std::vector<int>>& cust_land);
     double query(int u, int v);
 };
 

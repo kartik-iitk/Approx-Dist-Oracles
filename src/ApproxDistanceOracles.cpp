@@ -164,7 +164,8 @@ void ApproxDistanceOracles::printBalls() {
     }
 }
 
-void ApproxDistanceOracles::hashBalls() {
+long long ApproxDistanceOracles::hashBalls() {
+    long long total_size = 0;
     for (int v = 0; v < graph->n; v++) {
         std::vector<std::pair<int, double>> flat_data;
         for (auto& q : ball[v]) {
@@ -178,40 +179,60 @@ void ApproxDistanceOracles::hashBalls() {
         }
         ball_map[v].insert(flat_data.begin(), flat_data.end());
         ball_map[v].rehash(ball_map[v].size());
+        total_size += ball_map[v].size();
     }
+    return total_size;
 }
 
-void ApproxDistanceOracles::preprocess(
+std::pair<long long, long long> ApproxDistanceOracles::preprocess(
     const std::vector<std::vector<int>>& cust_land) {
-    if (debug == 1) {
+    long long total_space = 0, num_runs = 0;
+    long long n_root =
+        static_cast<long long>(std::ceil(pow(graph->n, 1.0 / k)));
+    do {
+        num_runs++;
+        landmarks.resize(k + 1);
+        rank.resize(graph->n, 0);
+        focus.resize(graph->n, std::vector<int>(k, -1));
+        focus_distance.resize(
+            graph->n,
+            std::vector<double>(k, std::numeric_limits<double>::infinity()));
+        ball.resize(graph->n,
+                    std::vector<std::queue<std::pair<int, double>>>(k));
+        ball_map.resize(
+            graph->n,
+            fph::MetaFphMap<int, double, fph::meta::MixSeedHash<int>>());
+
+        if (debug == 1 && spaceopt == 0) {
+            for (int i = 0; i < k; i++) {
+                landmarks[i] = cust_land[i];
+            }
+            updateRank();
+        } else {
+            chooseLandmarks();
+        }
+
+        for (int i = 1; i < k; i++) {
+            multiSourceDijkstra(landmarks[i], i);
+        }
+        // For i = k, we don't run above loop as the focus is assumed at
+        // infinity. This ensures that when we compute the groups while running
+        // trimmedDijkstra, we will equivalently run plain Dijkstra for the last
+        // level. Thus, the outermost ball of every vertex stores the distance
+        // to all the highest rank landmark vertices.
+
         for (int i = 0; i < k; i++) {
-            landmarks[i] = cust_land[i];
+            for (int v : landmarks[i]) {
+                trimmedDijkstra(v, i);
+            }
         }
-        updateRank();
-    } else {
-        chooseLandmarks();
-    }
-
-    for (int i = 1; i < k; i++) {
-        multiSourceDijkstra(landmarks[i], i);
-    }
-    // For i = k, we don't run above loop as the focus is assumed at
-    // infinity. This ensures that when we compute the groups while running
-    // trimmedDijkstra, we will equivalently run plain Dijkstra for the last
-    // level. Thus, the outermost ball of every vertex stores the distance
-    // to all the highest rank landmark vertices.
-
-    for (int i = 0; i < k; i++) {
-        for (int v : landmarks[i]) {
-            trimmedDijkstra(v, i);
-        }
-    }
-    Benchmark benchmark;
-    benchmark.start();
-    hashBalls();
-    benchmark.stop();
-    std::clog << "Hashing time: " << benchmark.elapsedMilliseconds() << " ms"
-              << std::endl;
+        total_space = hashBalls();
+        std::clog << "Total space used: " << 2 * total_space + graph->n
+                  << " words, and required limit: "
+                  << 100LL * k * graph->n * n_root << " words" << std::endl;
+    } while (spaceopt == 1 && total_space > 1000LL * k * graph->n * n_root);
+    // 1000 was chosen arbitrarily.
+    return std::make_pair(num_runs, 2 * total_space + graph->n);
 }
 
 double ApproxDistanceOracles::query(int u, int v) {

@@ -9,6 +9,7 @@ class Benchmark {
    public:
     void start();
     void stop();
+    double elapsedNanoseconds() const;
     double elapsedMilliseconds() const;
     double elapsedSeconds() const;
 
