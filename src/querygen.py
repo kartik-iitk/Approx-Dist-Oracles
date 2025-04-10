@@ -108,7 +108,7 @@ def main():
 
     write_queries_to_file(queries, outputfile)
     print(
-        f"Generated {len(queries)} queries using method '{args.m}' with indexing '{parameters["g"]}' written to {outputfile}"
+        f"Generated {len(queries)} queries using method '{args.m}' with indexing '{1 if is_one_indexed else 0}' written to {outputfile}"
     )
 
 

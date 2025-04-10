@@ -1,7 +1,7 @@
 #include <main.h>
 
 void processQueries(const std::string& testcase_path, const Parameters& params,
-                    Graph& graph) {
+                    Graph& graph, bool use_dijkstra) {
     std::ifstream queriesFile(testcase_path + fname.queries);
     if (!queriesFile.is_open()) {
         std::cerr << "Unable to open queries file: "
@@ -22,7 +22,12 @@ void processQueries(const std::string& testcase_path, const Parameters& params,
             u--;
             v--;
         }
-        double exactDistance = graph.trueDist[u][v];
+        double exactDistance;
+        if (!use_dijkstra) {
+            exactDistance = graph.trueDist[u][v];
+        } else {
+            exactDistance = graph.dijkstra(u, v);
+        }
         outFile << exactDistance << std::endl;
     }
 
@@ -31,13 +36,14 @@ void processQueries(const std::string& testcase_path, const Parameters& params,
 }
 
 int main(int argc, char* argv[]) {
-    if (argc != 2) {
-        std::cerr << "Too few input arguments. Need at least 2, received "
+    if (argc != 3) {
+        std::cerr << "Too few input arguments. Need at least 3, received "
                   << argc << "." << std::endl;
         return 1;
     }
 
     std::string testcase_path = argv[1];
+    bool use_dijkstra = std::stoi(argv[2]);
 
     // Read parameters
     std::string parametersPath = testcase_path + fname.parameters;
@@ -56,11 +62,13 @@ int main(int argc, char* argv[]) {
     loadGraph(graph, graphPath, params);
     std::clog << "Graph loaded with " << graph.n << " vertices." << std::endl;
 
-    graph.allPairsShortest();
-    std::clog << "All pairs shortest paths computed." << std::endl;
+    if (!use_dijkstra) {
+        graph.allPairsShortest();
+        std::clog << "All pairs shortest paths computed." << std::endl;
+    }
 
     // Process queries
-    processQueries(testcase_path, params, graph);
+    processQueries(testcase_path, params, graph, use_dijkstra);
     std::clog << "True Distance processed." << std::endl;
 
     return 0;

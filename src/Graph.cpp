@@ -47,3 +47,32 @@ void Graph::allPairsShortest() {
         }
     }
 }
+
+double Graph::dijkstra(int u, int v) {
+    if (u < 0 || v < 0 || u >= n || v >= n) {
+        std::cerr << "Invalid vertices: " << u << " and " << v << std::endl;
+        return INF;
+    }
+    std::vector<double> dist(n, INF);
+    dist[u] = 0;
+    std::vector<bool> visited(n, false);
+    for (int i = 0; i < n; i++) {
+        int minIndex = -1;
+        double minDist = INF;
+        for (int j = 0; j < n; j++) {
+            if (!visited[j] && dist[j] < minDist) {
+                minDist = dist[j];
+                minIndex = j;
+            }
+        }
+        if (minIndex == -1) break;
+        visited[minIndex] = true;
+        for (auto& [neighbor, weight] : adj[minIndex]) {
+            if (!visited[neighbor]) {
+                dist[neighbor] =
+                    std::min(dist[neighbor], dist[minIndex] + weight);
+            }
+        }
+    }
+    return dist[v];
+}

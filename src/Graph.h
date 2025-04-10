@@ -17,6 +17,7 @@ class Graph {
     void addBothEdges(int u, int v, double w);
     void addSingleEdge(int u, int v, double w);
     void allPairsShortest();
+    double dijkstra(int u, int v);
 };
 
 #endif  // GRAPH_H
