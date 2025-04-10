@@ -82,3 +82,8 @@ LAS VEGAS
 
 1. Total Ball Size computation and corresponding reruns (add info to log as necessary).
    (Note this will solve problem if any landmark level has all vertices or is fully empty).
+
+## References
+
+1. https://github.com/renzibei/fph-table/tree/master
+2.

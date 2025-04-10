@@ -9,7 +9,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(SOURCES
     src/Graph.cpp
     src/ApproxDistanceOracles.cpp
-    src/main.cpp
+    src/ado.cpp
+    src/Benchmark.cpp
 )
 
 # Define the executable

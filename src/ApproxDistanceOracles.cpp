@@ -1,7 +1,8 @@
 #include "ApproxDistanceOracles.h"
 
-ApproxDistanceOracles::ApproxDistanceOracles(Graph* graph, int k, bool tm)
-    : graph(graph), k(k), test_mode(tm) {
+ApproxDistanceOracles::ApproxDistanceOracles(Graph* graph, int k, bool sp,
+                                             bool dbg)
+    : graph(graph), k(k), spaceopt(sp), debug(dbg) {
     if (k <= 0) {
         std::cerr << "Invalid number of levels: " << k << std::endl;
         return;
@@ -48,12 +49,12 @@ void ApproxDistanceOracles::chooseLandmarks() {
 
 void ApproxDistanceOracles::printLandmarks() {
     for (int i = 0; i < k; i++) {
-        std::cout << "Level " << i << " landmarks (" << landmarks[i].size()
+        std::clog << "Level " << i << " landmarks (" << landmarks[i].size()
                   << "): ";
         for (int v : landmarks[i]) {
-            std::cout << v << " ";
+            std::clog << v << " ";
         }
-        std::cout << std::endl;
+        std::clog << std::endl;
     }
 }
 
@@ -182,7 +183,7 @@ void ApproxDistanceOracles::hashBalls() {
 
 void ApproxDistanceOracles::preprocess(
     const std::vector<std::vector<int>>& cust_land) {
-    if (test_mode == 1) {
+    if (debug == 1) {
         for (int i = 0; i < k; i++) {
             landmarks[i] = cust_land[i];
         }
@@ -205,9 +206,12 @@ void ApproxDistanceOracles::preprocess(
             trimmedDijkstra(v, i);
         }
     }
-    std::clog << "Trimmed Dijstra completed." << std::endl;
+    Benchmark benchmark;
+    benchmark.start();
     hashBalls();
-    std::clog << "Hash Balls completed." << std::endl;
+    benchmark.stop();
+    std::clog << "Hashing time: " << benchmark.elapsedMilliseconds() << " ms"
+              << std::endl;
 }
 
 double ApproxDistanceOracles::query(int u, int v) {

@@ -15,8 +15,6 @@ void Graph::addBothEdges(int u, int v, double w) {
                   << std::endl;
         return;
     }
-    std::clog << "Adding edge: " << u << " --(" << w << ")--> " << v
-              << std::endl;
     adj[u].push_back(std::make_pair(v, w));
     adj[v].push_back(std::make_pair(u, w));
 }
@@ -27,8 +25,6 @@ void Graph::addSingleEdge(int u, int v, double w) {
                   << std::endl;
         return;
     }
-    std::clog << "Adding edge: " << u << " --(" << w << ")--> " << v
-              << std::endl;
     adj[u].push_back(std::make_pair(v, w));
 }
 

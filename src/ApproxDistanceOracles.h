@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "Benchmark.h"
 #include "Graph.h"
 #include "fph/meta_fph_table.h"
 
@@ -15,7 +16,8 @@ class ApproxDistanceOracles {
    public:
     Graph* graph;
     int k;
-    bool test_mode;
+    bool spaceopt;  // Rerun for Space Optimisation Enablement.
+    bool debug;     // For Custom Landmarks
 
     std::vector<std::vector<int>> landmarks;
     std::vector<int> rank;
@@ -26,7 +28,7 @@ class ApproxDistanceOracles {
     std::vector<fph::MetaFphMap<int, double, fph::meta::MixSeedHash<int>>>
         ball_map;
 
-    ApproxDistanceOracles(Graph* graph, int k, bool tm);
+    ApproxDistanceOracles(Graph* graph, int k, bool sp, bool dbg);
     void updateRank();
     void chooseLandmarks();
     void printLandmarks();
