@@ -4,6 +4,8 @@
 \usepackage{hyperref}
 \usepackage{graphicx} % Required for inserting images
 \usepackage{soul}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
 \usepackage[]{geometry}
 
 \title{\textbf{Project Report}\\[0.5em] \Large \textbf{Approximate Distance Oracles: A Randomized Approach}}
@@ -329,8 +331,10 @@ To find the distance between two vertices \textit{(u, v)}, we exploit symmetry i
     \item If \(L_1(v) \in Ball_2(u) \; : \; \text{report } \delta(u, L_1(v)) + \delta(L_1(v), v)\)
     \item Else \(\text{report } \delta(u, L_2(u)) + \delta(L_2(u), v)\)
 \end{enumerate}
+
+\noindent \emph{Note}: This can be improved further as detailed in the kth level generalisation of the oracle as described in the next section, by introducing another level of balls and getting rid of global ditances.
 \subsection{Proof of Correctness}
-Refer Figure~\ref{fig:correctstretch}. Case 1 and 2 of query processing reports the exact distance, which is within the bound.
+Refer Figure~\ref{fig:correctstretch}. Case 1 and 2 of query processing reports the exact distance, which is within the bound. Note that, here we assumed that the landmark vertices of higher levels are farther, but this can be ensured by hierarchical sampling as described in the construction of the generalised oracle.
 \begin{itemize}
     \item \textbf{Case 3:} \(\delta(u, L_1(u)) \leq \delta(u, v) + \delta(v, L_1(u))\quad \text{ [Triangle Inequality]}\\
     \delta(v, L_1(u)) \leq \delta(u, v) \quad \text{\{case \textcircled{3} $\Rightarrow$ case \textcircled{2} does not hold\}} \\
@@ -379,19 +383,15 @@ This multi-level design preserves theoretical guarantees while improving both st
 \begin{enumerate}
     \item \textbf{Hierarchical Sampling:} We maintain \( k \) ``levels'' of landmark vertice ``sets'' \{\( \text{landmark}^0, \\ \text{landmark}^1, \ldots, \text{landmark}^k \)\}, starting with \( \text{landmark}^0 = V \). For each \( 1 \le i \le k \), every vertex in \( \text{landmark}^{i-1} \) is included in \( \text{landmark}^i \) independently with probability \( n^{-1/k} \). Allowing vertices having a max level (called as the \emph{rank}, henceforth) allows us to handle cases ensuring that a focus of higher level is always the same or farther than the lower level.
 
-    \item \textbf{Local Distance Storage:} We define the notion of locality using closest landmark at any level \textit{i}. For each vertex \( u \in \text{landmark}^i \), we define its \emph{focus set} at level \( i \) as
-    \[
-    \text{focus}_i(u) :=  v \,|\, v \in \text{landmark}^{i+1} \text{ and } \delta(v, u) \le \delta(u, w) \text{ for all } w \in \text{landmark}^{i+1} ,
-    \]
-    i.e., the closest landmark vertices at level \( i+1 \) to \( u \).\\
+    \item \textbf{Local Distance Storage:} We define the notion of locality using closest landmark at any level \textit{i}, called as the \emph{focus}. It is important to note that, by the nature of sampling as described earlier, the same vertex can be focus for a given vertex at different levels.
     Using this, we define the locality of vertex \textit{u} as \emph{ball} of \( u \) at level \( i \) as
     \[
     \text{Ball}_i(u) := \left\{ v \,\middle|\, v \in \text{landmark}^i \text{ and } \delta(v, u) \le \text{focal\_distance}_i(u) \right\},
     \]
-    where \( \text{focal\_distance}_i(u) \) denotes the distance from \( u \) to its closest landmark in \( \text{landmark}^{i+1} \), called as the \emph{focus}. These sets are used to store local distances needed for efficient query resolution.
+    where \( \text{focal\_distance}_i(u) \) denotes the distance from \( u \) to its closest landmark in \( \text{landmark}^{i+1} = focus_i(u)\). These balls store accurate local distances needed for efficient query resolution.
 
     \item \textbf{Global Distance Storage:} From the landmarks at level \textit{k}, store distance to 
-    all vertices \textit{u} to handle queries of far-away point. To handle this efficiently, add all the vertices in \(landmark^k\) in balls of all vertices. This will also help in efficient retrieval using hashing of the ball. 
+    all vertices \textit{u} to handle queries of far-away point. To handle this efficiently, add all the vertices in \(landmark^k\) in balls of all vertices. This will also help in efficient retrieval using hashing of the ball and no explicit storage will be required. 
 \end{enumerate}
 
 The complete data structure for the oracle is the collection
@@ -424,93 +424,148 @@ Thus, the \((2k-1)\)-approximate distance oracle requires an expected space of \
 
 \subsection{Query Answering Procedure}
 
-To determine an approximate distance between any two vertices \(u\) and \(v\) using our \(k\)-level oracle, we exploit the hierarchical data structure built during preprocessing and symmetry as in case of 5-Approximate Distance Oracle. Each \(focus_i(u)\) is stored in the corresponding hash table for \(\text{Ball}_i(u)\), the distance \(\delta(u,focus_i(u))\) is readily available.
+To determine an approximate distance between any two vertices \(u\) and \(v\) using our \(k\)-level oracle, we exploit the hierarchical data structure built during preprocessing and symmetry as in case of 5-Approximate Distance Oracle. However, we leverage the powerful intuition mentioned earlier of finding a point common to both the balls of i. We start with u, and iteratively jump back and forth between u and v by checking if this vertex belongs to the other's ball, or otherwise upgrade myself to the higher level focus of the other vertex (moving closer, but risking loss of access to the older vertex). Note that in the 5 distance oracle procedure developed previously, it was equivalent to double the comparisons we make here, because we were moving two iterators as we had 1 ball lesser for each vertex. By sampling method, each \(focus_i(u)\) gets stored in the corresponding hash table for \(\text{Ball}_i(u)\), the distance \(\delta(u,focus_i(u))\) is readily available. If the algorithm finds no such common vertex, it returns w.
 
 The query answering mechanism for \textit{u, v} operates as follows:
 
-\begin{enumerate}
+\begin{algorithm}[H]
+    \caption{Approximate Distance Query}
+    \begin{algorithmic}[1]
+    \Function{Query}{$u, v$}
+        \If{$u < 0$ or $v < 0$ or $u \geq n$ or $v \geq n$}
+            \State \Return $\infty$
+        \EndIf
+        \If{$u = v$}
+            \State \Return $0$
+        \EndIf
     
-    \item Set the level counter \(i = 0\).
-    \item \textit{x = u}
-    \item \textbf{While \(x\) is not found in \(\text{Ball}_i(v)\):}  
-    \begin{itemize}
-        \item Increment the level \(i\) by 1.
-        \item x = \(focus_i(u)\)
-    \end{itemize}
-    \item ans =
-    \(
-    \delta(u, x) + \delta(x, v),
-    \)
-
-    \item Set the level counter \(i = 0\).
-    \item \textit{x = v}
-    \item \textbf{While \(x\) is not found in \(\text{Ball}_i(u)\):}  
-    \begin{itemize}
-        \item Increment the level \(i\) by 1.
-        \item x = \(focus_i(v)\)
-    \end{itemize}
-    \item ans =
-    \(
-    min(ans, \delta(u, x) + \delta(x, v)),
-    \)
+        \State $i \gets 0$
+        \State $w \gets u$
+        
+        \While{$w \notin \text{Ball}_i(v)$}
+            \State $i \gets i + 1$
+            \If{$i \geq k$}
+                \State \textbf{break}
+            \EndIf
+            \State \textbf{swap} $u \leftrightarrow v$
+            \State $w \gets \text{focus}_{i-1}(u)$
+            \If{$w < 0$}
+                \State \textbf{break}
+            \EndIf
+        \EndWhile
     
-    which serves as the \((2k-1)\)-approximation of the true shortest path distance between \(u\) and \(v\).
-\end{enumerate}
+        \Return $\delta(u, w) + \delta(v, w)$
+    \EndFunction
+    \end{algorithmic}
+    \end{algorithm}
 
 Since the search in each level involves a constant-time hash table lookup and the number of levels is bounded by \(k\), the query answering process requires at most \(k+1\) steps.  Consequently, the overall query time is \(O(k)\) in practice.
 
 \subsection{Proof of Correctness}
 
-We now show that the query algorithm always returns a distance that is within a factor of \((2k-1)\) of the true distance between any two vertices \(u\) and \(v\). The algorithm operates symmetrically for \(u\) and \(v\) and examining successive levels of our hierarchy which is a direct extension of our methodology for 5-Approximate Distance Oracle.
+We prove that the query algorithm returns a \((2k-1)\)-approximation of the true distance \(\delta(u, v)\) for any \(u, v \in V\).
 
-We argue by induction that after each iteration of the algorithm, the additional distance from the currently examined vertex to its chosen representative is bounded by 2 \(\delta(u,v)\). More concretely, let us denote by \(focus_{i+1}(u)\) the representative for the current vertex \(u\) at the \((i+1)\)th level. We claim that after \(i\) iterations, the distance from \(u\) to \(focus_{i+1}(u)\) is at most \(i \cdot \delta(u,v)\).
+At each level \(i\), the algorithm either terminates with a common node \(w\) in the ball of one of the vertices, or continues to the next level, swapping the roles of \(u\) and \(v\). Let \(w_i\) be the focus node selected at level \(i\), and let the current roles of the vertices be \(u_i, v_i\) (swapped at each step).
+
+We prove by induction that after \(i\) iterations:
+\[
+\delta(u, w_i) \le i \cdot \delta(u, v), \quad
+\delta(v, w_i) \le (i+1) \cdot \delta(u, v)
+\]
 
 \textbf{Base Case (\(i=0\)):}  
-Initially, we set \(x=u\), so the extra distance is
-\(\delta(u,v) = 0\)
-which is trivially within \(0 \cdot \delta(u,v)\).
+Initially, \(w_0 = u\). Hence \(\delta(u, w_0) = 0\), and by the triangle inequality,
+\[
+\delta(v, w_0) \le \delta(u, v)
+\]
 
 \textbf{Inductive Step:}  
-Assume that after \(j\) iterations, the distance from the current vertex to its representative is bounded by
-\(
-\delta(u, focus_{j+1}(u)) \le j\,\delta(u,v).
-\)\\
-Now, consider the \((j+1)\)th iteration. If the algorithm has not yet terminated, it implies that the  \(focus_{j+1}(u)\) is not sufficiently close—in particular, it does not belong to the corresponding ball of the other vertex. By the construction of the oracle, the new \(focus_{j+2}(u)\)
+Assume after \(j\) iterations,
 \[
-\delta(v, focus_{j+2}(u)) \le \delta(v, focus_{j+1}(u)).
+\delta(u, w_j) \le j \cdot \delta(u, v)
 \]
-Applying the triangle inequality, we have
-\[
-\delta(v, focus_{j+1}(u)) \le \delta(u,v) + d(u, focus_{j+1}(u)).
-\]
-From  inductive hypothesis \(\delta(u, focus_{j+1}(u)) \le j\,d(u,v)\), it follows that
-\[
-\delta(u, focus_{j+1}(u)) \le \delta(u,v) + j\,\delta(u,v) = (j+1)\delta(u,v).
-\]
-Therefore, the extra distance incurred in the \((j+1)\)th iteration is at most \((j+1)\delta(u,v)\), which completes the inductive step.
+Now, the algorithm checks whether \(w_j \in \text{Ball}_j(v)\). If not, it proceeds to level \(j+1\), swapping \(u \leftrightarrow v\), and sets \(w_{j+1} = focus_{j+1}(u_{j+1})\).
 
-\textbf{Final Bound:}  
-When the algorithm terminates at some iteration \(l\) (with \(l\le k\)), it reports the approximate distance as
+Using the triangle inequality,
+\[
+\delta(v, w_{j+1}) \le \delta(v, w_j) \le \delta(u, v) + \delta(u, w_j) \le (j+1) \cdot \delta(u, v)
+\]
+
+When the algorithm finds such a \(w_l\) in the ball of the other vertex, it returns:
+\[
+\delta(u, w_l) + \delta(v, w_l) \le (l + (l+1)) \cdot \delta(u,v) = (2l + 1)\delta(u,v)
+\]
+
+\textbf{Final Bound:} When the algorithm terminates at some iteration \(l\) (with \(l < k\) as the level goes to a max value of $k - 1$ after which, if the vertices are connected, a common highest level vertex must be available). The final approximation is:
+\[
+\delta_{\text{approx}}(u,v) \le (2k - 1) \cdot \delta(u, v)
+\]
+
+\textbf{Remark.} The algorithm may terminate earlier (i.e., \(l < k\)), in which case the stretch is strictly better than \((2k-1)\).
+
+
+% \subsection{Proof of Correctness}
+
+% We now show that the query algorithm always returns a distance that is within a factor of \((2k-1)\) of the true distance between any two vertices \(u\) and \(v\). The algorithm operates symmetrically for \(u\) and \(v\) and examining successive levels of our hierarchy which is a direct extension of our methodology for 5-Approximate Distance Oracle.
+
+% We argue by induction that after each iteration of the algorithm, the additional distance from the currently examined vertex to its chosen representative is bounded by 2 \(\delta(u,v)\). More concretely, let us denote by \(focus_{i+1}(u)\) the representative for the current vertex \(u\) at the \((i+1)\)th level. We claim that after \(i\) iterations, the distance from \(u\) to \(focus_{i+1}(u)\) is at most \(i \cdot \delta(u,v)\).
+
+% \textbf{Base Case (\(i=0\)):}  
+% Initially, we set \(x=u\), so the extra distance is
+% \(\delta(u,v) = 0\)
+% which is trivially within \(0 \cdot \delta(u,v)\).
+
+% \textbf{Inductive Step:}  
+% Assume that after \(j\) iterations, the distance from the current vertex to its representative is bounded by
+% \(
+% \delta(u, focus_{j+1}(u)) \le j\,\delta(u,v).
+% \)\\
+% Now, consider the \((j+1)\)th iteration. If the algorithm has not yet terminated, it implies that the  \(focus_{j+1}(u)\) is not sufficiently close—in particular, it does not belong to the corresponding ball of the other vertex. By the construction of the oracle, the new \(focus_{j+2}(u)\)
+% \[
+% \delta(v, focus_{j+2}(u)) \le \delta(v, focus_{j+1}(u)).
+% \]
+% Applying the triangle inequality, we have
+% \[
+% \delta(v, focus_{j+1}(u)) \le \delta(u,v) + d(u, focus_{j+1}(u)).
+% \]
+% From  inductive hypothesis \(\delta(u, focus_{j+1}(u)) \le j\,d(u,v)\), it follows that
+% \[
+% \delta(u, focus_{j+1}(u)) \le \delta(u,v) + j\,\delta(u,v) = (j+1)\delta(u,v).
+% \]
+% Therefore, the extra distance incurred in the \((j+1)\)th iteration is at most \((j+1)\delta(u,v)\), which completes the inductive step.
+
+% \textbf{Final Bound:}  
+% When the algorithm terminates at some iteration \(l\) (with \(l\le k\)), it reports the approximate distance as
+% \(
+% \delta_{\text{approx}}(u,v)=\delta(u, focus_l(u)) + \delta(v, focus_l(u)).
+% \)
+% From the inductive argument, we know that \(\delta(u, focus_l(u)) \le (l-1)\delta(u,v)\). Moreover, by the triangle inequality,
+% \[
+% \delta(v, focus_l(u)) \le \delta(u,v) + \delta(u, focus_l(u)) \le \delta(u,v) + (l-1)\delta(u,v).
+% \]
+% Thus,
+% \[
+% d_{\text{approx}}(u,v) \le 2(l-1)\delta(u,v) + \delta(u,v) = (2l-1)d(u,v).
+% \]
+% Since \(l\le k\), this guarantees that
+% \[
+% d_{\text{approx}}(u,v) \le (2k-1)\delta(u,v).
+% \]
+
+% This completes the proof that the algorithm provides a \((2k-1)\)-approximate distance between \(u\) and \(v\).\\
+% \textbf{Note:} Since, the loop may break at \(i \leq k\), we need not to go all the way upto k, thus giving shorter stretch than k in some cases. 
+
+\subsection{Expected Size of Datastructure}
+
+Exactly same analysis (imagining sorted order of increasing weights) for 3-approximate distance oracles follow for computation of expected size of \(\text{Ball}_i(v)\) for any vertex \(v \in V\) at level \(i\) giving us the bound \(O(n^{1/k})\). This is crucial for ensuring that both the space and query time remain efficient in the approximate distance oracle.
+
+Summing over all the balls and levels, we find that the expected size of the data structure is
 \(
-\delta_{\text{approx}}(u,v)=\delta(u, focus_l(u)) + \delta(v, focus_l(u)).
+O\left(n \cdot k \cdot n^{1/k}\right) = O\Bigl(k\,n^{1+1/k}\Bigr).
 \)
-From the inductive argument, we know that \(\delta(u, focus_l(u)) \le (l-1)\delta(u,v)\). Moreover, by the triangle inequality,
-\[
-\delta(v, focus_l(u)) \le \delta(u,v) + \delta(u, focus_l(u)) \le \delta(u,v) + (l-1)\delta(u,v).
-\]
-Thus,
-\[
-d_{\text{approx}}(u,v) \le 2(l-1)\delta(u,v) + \delta(u,v) = (2l-1)d(u,v).
-\]
-Since \(l\le k\), this guarantees that
-\[
-d_{\text{approx}}(u,v) \le (2k-1)\delta(u,v).
-\]
+To guarantee a worst-case size of \(O\Bigl(k\,n^{1+1/k}\Bigr)\) for the data structure, we rerun the entire preprocessing algorithm. Since the expected number of repetitions required to achieve this bound remains constant, the overall asymptotic performance is not adversely affected. This is a significant improvement over the naive approach of storing all-pairs distances, which would require \(O(n^2)\) space.
 
-This completes the proof that the algorithm provides a \((2k-1)\)-approximate distance between \(u\) and \(v\).\\
-\textbf{Note:} Since, the loop may break at \(i \leq k\), we need not to go all the way upto k, thus giving shorter stretch than k in some cases. 
-
-\subsection{Complexity for (2k-1)-Approximate Distance Oracles}
+\subsection{Preprocessing for (2k-1)-Approximate Distance Oracles}
 
 In this section, we describe a polynomial time algorithm for constructing a \((2k-1)\)-approximate distance oracle. The approach extends the earlier 3-approximate method via a hierarchical sampling strategy. After forming the sequence of sampled vertex sets, the remaining work consists of computing, for each vertex \(u\) and for each level \(i \le k\), the set \(\text{Ball}_i(u)\) along with the distances from \(u\) to vertices in these sets. The following subsections outline the key components of the construction and their analysis.
 \\\\
@@ -530,12 +585,12 @@ To compute these sets efficiently for a vertex \textit{u}, we look for vertices 
 G_{i+1}(v) = \{w \in V \mid v \in Ball_i(w)\}.
 \]
 \\
-\textbf{Trim Dijkstra’s Algorithm for Group Computation}\\
+\textbf{Trim Dijkstra's Algorithm for Group Computation}\\
 
 A key observation is the following lemma: \\
 \textbf{Lemma: } On the shortest path from vertex \textit{u} to \(v \in G_i(v)\)  , all the vertices must also belong to \(G_i(v)\). \\
 
-Using property that as Dijkstra progresses, the distance computed never increases, we need to visit only those vertices which belong to \(G_i(u)\) at any point in Dijkstra. This means, an edge (\textit{v}, \textit{y}) is relaxed using an addition condition from vertex \textit{v} which is:
+Thus instead of computing every ball from source, we reverse the order to update which node's ball a given vertex can belong to (as this can be bounded). Further, using the property that as Dijkstra progresses, the distance computed never increases, we need to visit only those vertices which belong to \(G_i(u)\) at any point in Dijkstra. This means, an edge (\textit{v}, \textit{y}) is relaxed using an addition condition from vertex \textit{v} which is:
 \[
 d(u, v) + \text{weight}(v, y) < \delta(y, L(y))
 \]
@@ -547,75 +602,128 @@ O\left(\sum_{u \in V} |\text{Ball}_i(u)| \log n\right).
 \)
 Given that the expected size of \(\text{Ball}_i(u)\) is \(O(n^{1/k})\), the expected cost for level \(i\) is \(O(m\,n^{1/k}\log n)\). By processing all \(k\) levels, the total cost for computing ball sets is \(O(k\,m\,n^{1/k}\log n)\). With Fibonacci heaps, one can reduce or eliminate the logarithmic factor.
 \\\\
+\textbf{Final Algorithm for Preprocessing}
+\begin{algorithm}[H]
+    \caption{Preprocessing for Approximate Distance Oracle (with expected size \(O(k\,n^{1+1/k})\))}
+    \label{alg:preprocessing}
+    \begin{algorithmic}[1]
+    \Procedure{Preprocess}{Graph $G=(V,E)$, parameter $k$}
+        \State \Call{ChooseLandmarks}{}
+        \For{$i \gets 1$ to $k-1$}
+            \State \Call{MltiSourceDijkstra}{$\text{landmarks}[i]$, $i$}
+        \EndFor
+        \Comment{Skip $i = k$; focus assumed at infinity}
+        \For{$i \gets 0$ to $k-1$}
+            \ForAll{$v \in \text{landmarks}[i]$}
+                \State \Call{TtrimmedDijkstra}{$v$, $i$}
+            \EndFor
+        \EndFor
+        \State \Call{HashBalls}{}\Comment{For efficient retrieval, using a stronger hash function}
+    \EndProcedure
+    \end{algorithmic}
+    \end{algorithm}
+
 \textbf{Overall Running Time and Space Analysis}\\
 Combining the time for sampling, computing focii, and forming the balls, the total expected running time for building the data structure is
 \({O}(k\,m\,n^{1/k}),
-\).
-
-Concerning space, each level \(i\) contributes an expected \(O(n^{1/k})\) elements per vertex, resulting in an overall expected space usage of
-\(
-O\left(n \cdot k \cdot n^{1/k}\right) = O\Bigl(k\,n^{1+1/k}\Bigr).
 \)
-To guarantee a worst-case size of \(O\Bigl(k\,n^{1+1/k}\Bigr)\) for the data structure, we rerun the entire preprocessing algorithm. Since the expected number of repetitions required to achieve this bound remains constant, the overall asymptotic performance is not adversely affected.
 
 \subsection{Final Result}
-We thus conclude that, for a weighted undirected graph \(G=(V,E)\) and an integer \(k\), one can build a data structure of expected size \(O\Bigl(k\,n^{1+1/k}\Bigr)\) in \(O\bigl(k\,m\,n^{1/k}\bigr)\) time. This data structure enables us to report a \((2k-1)\)-approximate distance between any two vertices in \(O(k)\) time.
+We thus conclude that, for a weighted undirected graph \(G=(V,E)\) and an integer \(k\), one can build a data structure of (expected) size \(O\Bigl(k\,n^{1+1/k}\Bigr)\) in \(O\bigl(k\,m\,n^{1/k}\bigr)\) time. This data structure enables us to report a \((2k-1)\)-approximate distance between any two vertices in \(O(k)\) time.
 
-\section{Implementation Details}
+\section{Implementation}
 
-C++ was chosen as the language for experimentation as it provided greater control over memory allocation and internal data structures. A visualization module was also created, based on initial prototyping in Python, for additional support. All charts were generated using Python and Jupyter Notebooks. Each directory includes a \texttt{README} file containing exact instructions on how to run and use the code.
+C++ was chosen as the main language for experimentation as it provided greater control over memory allocation and internal data structures. A visualization module was also created, based on initial prototyping in Python and for additional support. All charts were generated using Python and Jupyter Notebooks. Each directory includes a \texttt{README} file containing exact instructions on how to run and use the code.
 
 \subsection*{Key Implementation Details}
 
-\begin{enumerate}
-    \item Initially, we started with a simple modular implementation of the code. However, for larger graph sizes (around 1000 nodes), memory pressure became significant due to edge weights being of type \texttt{double} (8 bytes). Consequently, the codebase was restructured into two separate executables with an object-oriented design.
+\begin{itemize}
+    \item Initially, we started with a direct implementation of the code. However, for larger graph sizes ($> 1000$ nodes), memory pressure became significant due to edge weights being of type \texttt{double} (8 bytes). Consequently, the codebase was restructured into two separate executables and following a full \emph{object-oriented design}, separating graph, algorithm and preprocessing functions from the main ones. Further, it facilitated fast deallocation of heap memory and lower usage of the stack. A CMakefile was created to facilitate easy compilation and execution of the code.
     
-    \item STL-based containers were primarily used, as they provided robust and efficient performance for our use case.
+    \item STL-based containers were primarily used, as they provided robust and efficient performance for our use case. Since the default \texttt{unordered\_map} in STL does not guarantee worst-case constant-time lookup, we opted for an alternative implementation using the FPH library~\cite{fphlib}. Hashing was performed using the FCH algorithm with a \texttt{MixSeedHash} function, as part of the \texttt{metaFPHMap} table, resulting in very low output query time.
     
-    \item To test various edge cases, we added support for custom landmark selection.
+    \item To test various edge cases, we added support for custom landmark selection. For checking robustness, we manually tested for different input-output pairs and special cases.
     
-    \item For computing true distances between vertices, two methods were implemented: one using the Floyd-Warshall algorithm and the other using Dijkstra's algorithm for each query.
+    \item For computing true distances between vertices, two methods were implemented: one using the Floyd-Warshall algorithm and the other using Dijkstra's algorithm for each query. We also explored implementing bidirectional version of Dijkstra and A* search, but they were not greatly useful as we had multiple queries and choosing a heurestic function for different graphs was cumbersome. This step was one of the most time-consuming. The final implementation used Dijkstra's algorithm for each query, which was fast enough for our needs.
     
-    \item A Python script was created to generate queries, either exhaustively or by uniformly sampling the required number of queries.
+    \item A Python script was created to generate queries, either exhaustively or by uniformly sampling the required number of queries, especially for large graphs.
     
-    \item Since the default \texttt{unordered\_map} in STL does not guarantee worst-case constant-time lookup, we opted for an alternative implementation using the FPH library~\cite{fphlib}. Hashing was performed using the FCH algorithm with a \texttt{MixSeedHash} function, as part of the \texttt{metaFPHMap} table, resulting in very low output query time.
-\end{enumerate}
+\end{itemize}
 
 \subsection*{Choice of Datasets}
 
 \begin{enumerate}
-    \item We explored various publicly available datasets and made the following observations:
-    \begin{itemize}
-        \item Most real-world datasets were unweighted.
-        \item They were either too small (a few KBs to MBs) or too large (around 10GB).
-        \item Many datasets were unclean, containing inconsistencies such as duplicate edges, incorrect metadata (e.g., number of nodes), and format anomalies. Cleaning these required significant manual preprocessing.
-    \end{itemize}
-    Therefore, we selected representative graphs from three categories:
+    \item We shortlisted following representative graphs from categories:
     \begin{enumerate}
         \item RoadNet California~\cite{roadnet}
         \item Facebook Social Circles~\cite{facebook}
         \item Enron Email Cluster and Hierarchical Structure~\cite{enron}
     \end{enumerate}
 
-    \item To address the limitations of real-world datasets, we generated synthetic graphs to obtain fine-grained control over parameters such as average degree and number of nodes.
+    \item We explored various \emph{publicly} available datasets and made the following observations:
+    \begin{itemize}
+        \item Most real-world datasets were unweighted.
+        \item They were either too small (a few KBs to MBs) or too large (around 10GB).
+        \item Many datasets were unclean, containing inconsistencies such as duplicate edges, incorrect metadata (e.g., number of nodes), and format anomalies. Cleaning these required significant manual preprocessing.
+    \end{itemize}
 
-    \item We attempted to run our algorithm on large datasets (around 10GB) on CSE servers, but due to memory usage exceeding 90GB and long runtimes (5--6 hours), we restricted ourselves to graphs with up to 50,000 nodes.
+    \item To address the limitations of real-world datasets, we generated synthetic graphs using LFRBenchmarks~\cite{lfrbench} to obtain fine-grained control over parameters such as average degree and number of nodes.
 
-    \item Approximately 30 runs were conducted on different graph datasets. A summary of the results is provided in the following section.
+    \item We attempted to run our algorithm on large datasets (around 10GB) on CSE servers, but due to long runtimes, the process frequently got killed becuase of network issues. Eventually, we restricted ourselves to graphs with up to 50,000 nodes. \emph{Note:} 2 of the servers had incompatible cmake configurations, and executables wouldn't get compiled as well. Without sudo access, we couldn't install the required libraries. However, we did carry out the testing for sufficiently large graphs on local machine on MacOS and AppleClang.
+
+    \item Approximately 40 runs were conducted on different graph datasets. A summary of the results is provided in the following section.
 \end{enumerate}
 
 \subsection*{Key Observations}
 
 \begin{enumerate}
-    \item For a fixed $k$ and average degree, as $n$ increases, the stretch distribution shifts to the right; however, the frequency of stretch values close to 1 remains high.
+    \item For a fixed $k=3$ and average degree, as $n$ increases, the stretch distribution shifts to the right; however, the frequency of stretch values close to 1 remains high.
 
-    \item The use of the custom hashing function maintained an average query time of approximately 400ns, with minimal variation as $k$ increased.
+    \begin{figure}[H]
+        \centering
+        \begin{tabular}{ccc}
+            \includegraphics[width=0.4\textwidth]{img/test16.png} &
+            \includegraphics[width=0.4\textwidth]{img/test11.png} \\
+            (a) Image 1 (n = 100) & (b) Image 2 (n = 36692)\\
+        \end{tabular}
+        % \caption{Three images displayed in a row.}
+        \label{fig:three_images}
+    \end{figure}
 
-    \item The number of words used to represent graphs was exponentially smaller than the $O(n^2)$ worst-case expectation across all test cases.
+    \item For a fixed $n=4039$ and average degree, as $k$ increases, the stretch distribution shifts to the right; however, the frequency of stretch values close to 1 remains high, indicating great compressibility of the dataset.
+
+    \begin{figure}[H]
+        \centering
+        \begin{tabular}{ccc}
+            \includegraphics[width=0.4\textwidth]{img/test30.png} &
+            \includegraphics[width=0.4\textwidth]{img/test31.png} \\
+            (a) Image 1 (k = 2) & (b) Image 2 (k = 3)\\
+            \includegraphics[width=0.4\textwidth]{img/test32.png} &
+            \includegraphics[width=0.4\textwidth]{img/test33.png} \\
+            (a) Image 3 (k = 5) & (b) Image 4 (k = 9)\\
+        \end{tabular}
+        % \caption{Three images displayed in a row.}
+        \label{fig:4_images}
+    \end{figure}
 
     \item As the average degree decreased, instances of higher stretch became more frequent.
+    
+    \begin{figure}[H]
+        \centering
+        \begin{tabular}{ccc}
+            \includegraphics[width=0.3\textwidth]{img/test19.png} &
+            \includegraphics[width=0.3\textwidth]{img/test20.png} &
+            \includegraphics[width=0.3\textwidth]{img/test21.png}\\
+            (a) Image 1 (deg = 15) & (b) Image 2 (deg = 50) & (b) Image 3 (n = 100) \\
+        \end{tabular}
+        % \caption{Three images displayed in a row.}
+        \label{fig:555}
+    \end{figure}
 
-    \item For graphs with more than 1000 nodes, the overall stretch remained consistently low.
+    \item The use of the custom hashing function maintained an average (query time / k) of approximately \texttt{357ns}, with a standard deviation of \texttt{200ns} proving usefulness of our hashing library.
+
+    \item The number of words used to represent graphs was exponentially smaller than the $O(n^2)$ worst-case expectation across all test cases (an average 11\% compression.)
+    
 \end{enumerate}
 
 \begin{figure}
@@ -647,6 +755,7 @@ C++ was chosen as the language for experimentation as it provided greater contro
     \bibitem{roadnet} \url{https://snap.stanford.edu/data/roadNet-CA.html}
     \bibitem{facebook} \url{https://snap.stanford.edu/data/ego-Facebook.html}
     \bibitem{enron} \url{https://snap.stanford.edu/data/email-Enron.html}
-    \end{thebibliography}
+    \bibitem{lfrbench} \url{https://github.com/eXascaleInfolab/LFR-Benchmark_UndirWeightOvp}
+\end{thebibliography}
 
 \end{document}
