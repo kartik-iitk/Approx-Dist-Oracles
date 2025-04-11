@@ -1,7 +1,0 @@
-https://snap.stanford.edu/data/ego-Facebook.html
-
-Undirected
-Unweighted
-
-Facebook - Social Circle
-~4039 Nodes

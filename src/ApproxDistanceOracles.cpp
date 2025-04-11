@@ -1,6 +1,6 @@
 #include "ApproxDistanceOracles.h"
 
-ApproxDistanceOracles::ApproxDistanceOracles(Graph* graph, int k, bool sp,
+ApproxDistanceOracles::ApproxDistanceOracles(Graph* graph, long long k, bool sp,
                                              bool dbg)
     : graph(graph), k(k), spaceopt(sp), debug(dbg) {
     if (k <= 0) {
@@ -20,8 +20,8 @@ ApproxDistanceOracles::ApproxDistanceOracles(Graph* graph, int k, bool sp,
 }
 
 void ApproxDistanceOracles::updateRank() {
-    for (int i = 0; i < k; i++) {
-        for (int v : landmarks[i]) {
+    for (long long i = 0; i < k; i++) {
+        for (long long v : landmarks[i]) {
             rank[v] = i;
         }
     }
@@ -35,8 +35,8 @@ void ApproxDistanceOracles::chooseLandmarks() {
     std::uniform_real_distribution<double> distribution(0.0, 1.0);
     double prob = pow((double)graph->n, -1.0 / k);
 
-    for (int i = 1; i < k; i++) {
-        for (int v : landmarks[i - 1]) {
+    for (long long i = 1; i < k; i++) {
+        for (long long v : landmarks[i - 1]) {
             double r = distribution(generator);
             if (r < prob) {
                 landmarks[i].push_back(v);
@@ -48,10 +48,10 @@ void ApproxDistanceOracles::chooseLandmarks() {
 }
 
 void ApproxDistanceOracles::printLandmarks() {
-    for (int i = 0; i < k; i++) {
+    for (long long i = 0; i < k; i++) {
         std::clog << "Level " << i << " landmarks (" << landmarks[i].size()
                   << "): ";
-        for (int v : landmarks[i]) {
+        for (long long v : landmarks[i]) {
             std::clog << v << " ";
         }
         std::clog << std::endl;
@@ -61,7 +61,7 @@ void ApproxDistanceOracles::printLandmarks() {
 // Time Complexity: O((m + n)logn). Here, we would usually look for graphs
 // with m > n. So the time complexity is O(mlogn).
 void ApproxDistanceOracles::multiSourceDijkstra(const std::vector<int>& sources,
-                                                int level) {
+                                                long long level) {
     std::priority_queue<std::pair<double, int>,
                         std::vector<std::pair<double, int>>,
                         std::greater<std::pair<double, int>>>
@@ -70,7 +70,7 @@ void ApproxDistanceOracles::multiSourceDijkstra(const std::vector<int>& sources,
     std::vector<double> parent(
         graph->n, -1);  // Stores which of the sources led to the vertex.
 
-    for (int src : sources) {
+    for (long long src : sources) {
         if (src < 0 || src >= graph->n) {
             std::cerr << "Invalid source: " << src << std::endl;
             return;
@@ -97,16 +97,16 @@ void ApproxDistanceOracles::multiSourceDijkstra(const std::vector<int>& sources,
     }
 
     // Update the focus arrays of all vertices.
-    for (int v = 0; v < graph->n; v++) {
+    for (long long v = 0; v < graph->n; v++) {
         focus[v][level - 1] = parent[v];
         focus_distance[v][level - 1] = dist[v];
     }
 }
 
 void ApproxDistanceOracles::printFocii() {
-    for (int v = 0; v < graph->n; v++) {
+    for (long long v = 0; v < graph->n; v++) {
         std::clog << "Focii of vertex " << v << ": ";
-        for (int i = 0; i < k; i++) {
+        for (long long i = 0; i < k; i++) {
             std::clog << "(" << focus[v][i] << ", " << focus_distance[v][i]
                       << ") ";
         }
@@ -114,7 +114,7 @@ void ApproxDistanceOracles::printFocii() {
     }
 }
 
-void ApproxDistanceOracles::trimmedDijkstra(int v, int level) {
+void ApproxDistanceOracles::trimmedDijkstra(long long v, long long level) {
     std::priority_queue<std::pair<double, int>,
                         std::vector<std::pair<double, int>>,
                         std::greater<std::pair<double, int>>>
@@ -139,7 +139,7 @@ void ApproxDistanceOracles::trimmedDijkstra(int v, int level) {
     }
 
     // Update the ball of all vertices in the group.
-    for (int w = 0; w < graph->n; w++) {
+    for (long long w = 0; w < graph->n; w++) {
         if (dist[w] < INF) {
             ball[w][level].push({v, dist[w]});
         }
@@ -147,12 +147,12 @@ void ApproxDistanceOracles::trimmedDijkstra(int v, int level) {
 }
 
 void ApproxDistanceOracles::printBalls() {
-    for (int v = 0; v < graph->n; v++) {
+    for (long long v = 0; v < graph->n; v++) {
         std::clog << "Ball of vertex " << v << ": " << std::endl;
-        for (int i = 0; i < k; i++) {
-            int q_size = ball[v][i].size();
+        for (long long i = 0; i < k; i++) {
+            long long q_size = ball[v][i].size();
             std::clog << "  Level " << i << ": ";
-            for (int iter = 0; iter < q_size; iter++) {
+            for (long long iter = 0; iter < q_size; iter++) {
                 auto it = ball[v][i].front();
                 std::clog << "(" << it.first << ", " << it.second << ") ";
                 ball[v][i].pop();
@@ -166,11 +166,11 @@ void ApproxDistanceOracles::printBalls() {
 
 long long ApproxDistanceOracles::hashBalls() {
     long long total_size = 0;
-    for (int v = 0; v < graph->n; v++) {
+    for (long long v = 0; v < graph->n; v++) {
         std::vector<std::pair<int, double>> flat_data;
         for (auto& q : ball[v]) {
-            int q_size = q.size();
-            for (int iter = 0; iter < q_size; iter++) {
+            long long q_size = q.size();
+            for (long long iter = 0; iter < q_size; iter++) {
                 auto it = q.front();
                 flat_data.push_back(it);
                 q.pop();
@@ -204,7 +204,7 @@ std::pair<long long, long long> ApproxDistanceOracles::preprocess(
             fph::MetaFphMap<int, double, fph::meta::MixSeedHash<int>>());
 
         if (debug == 1 && spaceopt == 0) {
-            for (int i = 0; i < k; i++) {
+            for (long long i = 0; i < k; i++) {
                 landmarks[i] = cust_land[i];
             }
             updateRank();
@@ -212,7 +212,7 @@ std::pair<long long, long long> ApproxDistanceOracles::preprocess(
             chooseLandmarks();
         }
 
-        for (int i = 1; i < k; i++) {
+        for (long long i = 1; i < k; i++) {
             multiSourceDijkstra(landmarks[i], i);
         }
         // For i = k, we don't run above loop as the focus is assumed at
@@ -221,8 +221,8 @@ std::pair<long long, long long> ApproxDistanceOracles::preprocess(
         // level. Thus, the outermost ball of every vertex stores the distance
         // to all the highest rank landmark vertices.
 
-        for (int i = 0; i < k; i++) {
-            for (int v : landmarks[i]) {
+        for (long long i = 0; i < k; i++) {
+            for (long long v : landmarks[i]) {
                 trimmedDijkstra(v, i);
             }
         }
@@ -235,15 +235,15 @@ std::pair<long long, long long> ApproxDistanceOracles::preprocess(
     return std::make_pair(num_runs, 2 * total_space + graph->n);
 }
 
-double ApproxDistanceOracles::query(int u, int v) {
+double ApproxDistanceOracles::query(long long u, long long v) {
     if (u < 0 || v < 0 || u >= graph->n || v >= graph->n) {
         std::cerr << "Invalid query: " << u << " --?--> " << v << std::endl;
         return INF;
     }
     if (u == v) return 0.0;
 
-    int i = 0;
-    int w = u;
+    long long i = 0;
+    long long w = u;
     while (!ball_map[v].contains(w)) {
         i++;
         if (i >= k) break;

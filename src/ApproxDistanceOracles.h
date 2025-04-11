@@ -15,7 +15,7 @@
 class ApproxDistanceOracles {
    public:
     Graph* graph;
-    int k;
+    long long k;
     bool spaceopt;  // Rerun for Space Optimisation Enablement.
     bool debug;     // For Custom Landmarks
 
@@ -28,18 +28,18 @@ class ApproxDistanceOracles {
     std::vector<fph::MetaFphMap<int, double, fph::meta::MixSeedHash<int>>>
         ball_map;
 
-    ApproxDistanceOracles(Graph* graph, int k, bool sp, bool dbg);
+    ApproxDistanceOracles(Graph* graph, long long k, bool sp, bool dbg);
     void updateRank();
     void chooseLandmarks();
     void printLandmarks();
-    void multiSourceDijkstra(const std::vector<int>& sources, int level);
+    void multiSourceDijkstra(const std::vector<int>& sources, long long level);
     void printFocii();
-    void trimmedDijkstra(int v, int level);
+    void trimmedDijkstra(long long v, long long level);
     void printBalls();
     long long hashBalls();
     std::pair<long long, long long> preprocess(
         const std::vector<std::vector<int>>& cust_land);
-    double query(int u, int v);
+    double query(long long u, long long v);
 };
 
 #endif  // APPROXDISTANCEORACLES_H

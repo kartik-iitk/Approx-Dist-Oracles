@@ -16,7 +16,7 @@ void processQueries(const std::string& testcase_path, const Parameters& params,
         exit(1);
     }
 
-    int u, v;
+    long long u, v;
     while (queriesFile >> u >> v) {
         if (params.one_indexed) {
             u--;

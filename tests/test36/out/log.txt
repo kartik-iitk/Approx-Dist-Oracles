@@ -1,0 +1,5 @@
+Read parameters: n = 36692, k = 5, num_threads = 1, one_indexed = 0, both = 1, spaceopt = 0, verbose = 0, debug = 0
+Graph loaded with 36692 vertices.
+Total space used: 980960 words, and required limit: 165114000 words
+Preprocessing completed in 1 run(s) in 20584.5ms
+Queries processed.

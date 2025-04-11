@@ -1,0 +1,81 @@
+html,
+body,
+.main,
+#part1,
+#part2,
+#part3,
+#bunch {
+  width: 100%;
+  height: 95%;
+  font-family: Sans-Serif;
+}
+
+#bunch {
+  /*width: 90%;*/
+  /*height: 80%;*/
+}
+
+svg {
+  border: 1px solid #000;
+}
+
+table {
+  padding: 20px;
+}
+
+td {
+  padding: 20px;
+  border: 1px solid #000;
+}
+
+#table-container {
+  height: 100%;
+  overflow: auto;
+}
+
+.lcol {
+  display: inline-block;
+  width: 70%;
+  height: 100%;
+}
+
+.rcol {
+  display: inline-block;
+  width: 25%;
+  height: 100%;
+}
+
+.points {
+  cursor: pointer;
+}
+
+table {
+  cursor: pointer;
+  user-select: none;
+  margin: 0;
+  background: linear-gradient(45deg, #49a09d, #5f2c82);
+  font-family: sans-serif;
+  font-weight: 100;
+  border-collapse: collapse;
+  overflow: hidden;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+}
+th,
+td {
+  padding: 15px;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+th {
+  text-align: left;
+}
+thead th {
+  background-color: #55608f;
+}
+tbody td {
+  position: relative;
+}
+
+tbody td:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}

@@ -19,9 +19,9 @@ struct TestCaseFiles {
 };
 
 struct Parameters {
-    int n;
-    int k;
-    int num_threads;
+    long long n;
+    long long k;
+    long long num_threads;
     bool one_indexed;
     bool both;
     bool spaceopt;
@@ -120,7 +120,7 @@ void loadGraph(Graph& graph, const std::string& filepath, Parameters& params) {
         std::cerr << "Unable to open graph file: " << filepath << std::endl;
         exit(1);
     }
-    int u, v;
+    long long u, v;
     double w;
 
     if (params.both) {

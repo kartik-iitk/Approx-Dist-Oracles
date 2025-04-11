@@ -11,15 +11,15 @@ void readLandmarks(const std::string& filepath, Parameters& params,
     while (std::getline(in, line)) {
         if (line.empty()) continue;
         std::istringstream iss(line);
-        int count;
+        long long count;
         if (!(iss >> count)) {
             std::cerr << "Error reading landmarks count in line: " << line
                       << std::endl;
             exit(1);
         }
         std::vector<int> level;
-        for (int i = 0; i < count; i++) {
-            int landmark;
+        for (long long i = 0; i < count; i++) {
+            long long landmark;
             if (!(iss >> landmark)) {
                 std::cerr << "Error reading landmark index in line: " << line
                           << std::endl;
@@ -55,7 +55,7 @@ void processQueries(const std::string& testcase_path, const Parameters& params,
         exit(1);
     }
 
-    int u, v;
+    long long u, v;
     while (queriesFile >> u >> v) {
         if (params.one_indexed) {
             u--;

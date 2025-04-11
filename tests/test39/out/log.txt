@@ -1,0 +1,8 @@
+Read parameters: n = 1971280, k = 3, num_threads = 1, one_indexed = 0, both = 0, spaceopt = 0, verbose = 1, debug = 0
+Invalid edge: 1969995 --(1)--> 1971280
+Invalid edge: 1969993 --(1)--> 1971280
+Invalid edge: 1971280 --(1)--> 1969993
+Invalid edge: 1971280 --(1)--> 1969995
+Invalid edge: 1971280 --(1)--> 1969999
+Invalid edge: 1969999 --(1)--> 1971280
+Graph loaded with 1971280 vertices.

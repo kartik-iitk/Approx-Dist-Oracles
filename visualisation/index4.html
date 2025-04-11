@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+
+<head>
+	<link rel="stylesheet" href="css/home.css">
+	<link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">
+	<script src='https://d3js.org/d3.v5.min.js'></script>
+	<title>ADO Viz 2: Query</title>
+</head>
+
+<body>
+	<div class="main">
+		<div class="lcol" style="margin: 10px;">
+			Value of k:
+			<input id="kBar" class="slider" type="range" min="2" max="8" value="5">
+			<span id="kValue">(k = 5)</span>
+			<br />
+			Value of n:
+			<input id="pointBar" class="slider" type="range" min="1" max="30" value="15">
+			<span id="pointValue">(# of nodes = 15)</span>
+
+			<svg id='part3' style="margin-top: 10px;"></svg>
+		</div>
+		<div class="rcol" style="margin: 10px; vertical-align: top;">
+			<div id="table-container">
+				<h1 style="color: #2e6c80;">ADO Query</h1>
+				<p><strong>True Distance:</strong> <span id="uv_actual"></span></p>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				<strong>u</strong>&rarr;<strong>w</strong>: <span id="uw_actual"></span>
+				<br />
+				<strong>+ &nbsp;&nbsp;&nbsp;w</strong>&rarr;<strong>v</strong>: <span id="wv_actual"></span>
+				<hr />
+				<p><strong>=&nbsp;&nbsp;&nbsp;&nbsp;Approximate Distance:</strong> <span id="uv_estimate"></span></p>
+
+			 </div>
+		</div>
+	</div>
+	<script src='assets/js/part3.js'></script>
+</body>
+
+</html>

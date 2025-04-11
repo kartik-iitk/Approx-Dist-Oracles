@@ -9,15 +9,15 @@ const double INF = std::numeric_limits<double>::infinity();
 
 class Graph {
    public:
-    int n;
+    long long n;
     std::vector<std::vector<std::pair<int, double>>> adj;
     std::vector<std::vector<double>> trueDist;
 
-    Graph(int n);
-    void addBothEdges(int u, int v, double w);
-    void addSingleEdge(int u, int v, double w);
+    Graph(long long n);
+    void addBothEdges(long long u, long long v, double w);
+    void addSingleEdge(long long u, long long v, double w);
     void allPairsShortest();
-    double dijkstra(int u, int v);
+    double dijkstra(long long u, long long v);
 };
 
 #endif  // GRAPH_H
