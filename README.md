@@ -45,17 +45,17 @@ Eg:
 ./approx_dist_oracle ../tests/test3
 ```
 
-3. For stretch analysis, next run the executable to get true distances.
+3. For stretch analysis, next run the executable to get true distances. The use_dijkstra boolean should be 1 if exact Dijkstra is to be used else 0 to use all pairs shortest paths.
 
 ```bash
 cd build
-./true_distance <path/to/test/case/folder>
+./true_distance <path/to/test/case/folder> <use_dijkstra>
 ```
 
 Eg:
 
 ```bash
-./true_distance ../tests/test3
+./true_distance ../tests/test3 1
 ```
 
 4. Use `./src/analysis.ipynb` for analysis and plots.

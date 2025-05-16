@@ -1,7 +1,7 @@
 Read parameters: n = 5, k = 2, num_threads = 1, one_indexed = 0, both = 0, spaceopt = 0, verbose = 1, debug = 0
 Graph loaded with 5 vertices.
 Total space used: 35 words, and required limit: 3000 words
-Preprocessing completed in 1 run(s) in 0.177667ms
+Preprocessing completed in 1 run(s) in 0.172459ms
 
 Focii of vertex 0: (3, 8) (-1, inf) 
 Focii of vertex 1: (3, 1) (-1, inf) 
@@ -14,23 +14,23 @@ Level 1 landmarks (1): 3
 
 Ball of vertex 0: 
   Level 0: (0, 0) (1, 7) (2, 5) (4, 7) 
-  Level 1: (3, 8) 
+  Level 1: (3, 8) (3, 8) 
 
 Ball of vertex 1: 
   Level 0: (1, 0) 
-  Level 1: (3, 1) 
+  Level 1: (3, 1) (3, 1) 
 
 Ball of vertex 2: 
   Level 0: (1, 2) (2, 0) (4, 2) 
-  Level 1: (3, 3) 
+  Level 1: (3, 3) (3, 3) 
 
 Ball of vertex 3: 
   Level 0: (3, 0) 
-  Level 1: (3, 0) 
+  Level 1: (3, 0) (3, 0) 
 
 Ball of vertex 4: 
   Level 0: (2, 2) (4, 0) 
-  Level 1: (3, 4) 
+  Level 1: (3, 4) (3, 4) 
 
 
 Queries processed.

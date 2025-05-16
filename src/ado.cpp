@@ -1,7 +1,7 @@
 #include <main.h>
 
 void readLandmarks(const std::string& filepath, Parameters& params,
-                   std::vector<std::vector<int>>& custom_landmarks) {
+                   std::vector<std::vector<long long>>& custom_landmarks) {
     std::ifstream in(filepath);
     if (!in.is_open()) {
         std::cerr << "Unable to open landmarks file: " << filepath << std::endl;
@@ -17,7 +17,7 @@ void readLandmarks(const std::string& filepath, Parameters& params,
                       << std::endl;
             exit(1);
         }
-        std::vector<int> level;
+        std::vector<long long> level;
         for (long long i = 0; i < count; i++) {
             long long landmark;
             if (!(iss >> landmark)) {
@@ -30,7 +30,7 @@ void readLandmarks(const std::string& filepath, Parameters& params,
         }
         custom_landmarks.push_back(level);
     }
-    if (int(custom_landmarks.size()) != params.k) {
+    if ((long long)(custom_landmarks.size()) != params.k) {
         std::cerr << "Invalid landmarks file: need all " << params.k
                   << " levels, but found " << custom_landmarks.size()
                   << std::endl;
@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
     ApproxDistanceOracles oracle(&graph, params.k, params.spaceopt,
                                  params.debug);
 
-    std::vector<std::vector<int>> cust_landmarks;
+    std::vector<std::vector<long long>> cust_landmarks;
     if (params.debug == 1) {
         std::string landmarksPath = testcase_path + fname.landmarks;
         readLandmarks(landmarksPath, params, cust_landmarks);

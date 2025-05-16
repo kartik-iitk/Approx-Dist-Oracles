@@ -10,13 +10,15 @@ ApproxDistanceOracles::ApproxDistanceOracles(Graph* graph, long long k, bool sp,
 
     landmarks.resize(k + 1);
     rank.resize(graph->n, 0);
-    focus.resize(graph->n, std::vector<int>(k, -1));
+    focus.resize(graph->n, std::vector<long long>(k, -1));
     focus_distance.resize(
         graph->n,
         std::vector<double>(k, std::numeric_limits<double>::infinity()));
-    ball.resize(graph->n, std::vector<std::queue<std::pair<int, double>>>(k));
-    ball_map.resize(
-        graph->n, fph::MetaFphMap<int, double, fph::meta::MixSeedHash<int>>());
+    ball.resize(graph->n,
+                std::vector<std::queue<std::pair<long long, double>>>(k));
+    ball_map.resize(graph->n,
+                    fph::MetaFphMap<long long, double,
+                                    fph::meta::MixSeedHash<long long>>());
 }
 
 void ApproxDistanceOracles::updateRank() {
@@ -60,14 +62,14 @@ void ApproxDistanceOracles::printLandmarks() {
 
 // Time Complexity: O((m + n)logn). Here, we would usually look for graphs
 // with m > n. So the time complexity is O(mlogn).
-void ApproxDistanceOracles::multiSourceDijkstra(const std::vector<int>& sources,
-                                                long long level) {
-    std::priority_queue<std::pair<double, int>,
-                        std::vector<std::pair<double, int>>,
-                        std::greater<std::pair<double, int>>>
+void ApproxDistanceOracles::multiSourceDijkstra(
+    const std::vector<long long>& sources, long long level) {
+    std::priority_queue<std::pair<double, long long>,
+                        std::vector<std::pair<double, long long>>,
+                        std::greater<std::pair<double, long long>>>
         pq;
     std::vector<double> dist(graph->n, INF);
-    std::vector<double> parent(
+    std::vector<long long> parent(
         graph->n, -1);  // Stores which of the sources led to the vertex.
 
     for (long long src : sources) {
@@ -115,9 +117,9 @@ void ApproxDistanceOracles::printFocii() {
 }
 
 void ApproxDistanceOracles::trimmedDijkstra(long long v, long long level) {
-    std::priority_queue<std::pair<double, int>,
-                        std::vector<std::pair<double, int>>,
-                        std::greater<std::pair<double, int>>>
+    std::priority_queue<std::pair<double, long long>,
+                        std::vector<std::pair<double, long long>>,
+                        std::greater<std::pair<double, long long>>>
         pq;
     std::vector<double> dist(graph->n, INF);
 
@@ -167,7 +169,8 @@ void ApproxDistanceOracles::printBalls() {
 long long ApproxDistanceOracles::hashBalls() {
     long long total_size = 0;
     for (long long v = 0; v < graph->n; v++) {
-        std::vector<std::pair<int, double>> flat_data;
+        ball_map[v].clear();
+        std::vector<std::pair<long long, double>> flat_data;
         for (auto& q : ball[v]) {
             long long q_size = q.size();
             for (long long iter = 0; iter < q_size; iter++) {
@@ -178,30 +181,33 @@ long long ApproxDistanceOracles::hashBalls() {
             }
         }
         ball_map[v].insert(flat_data.begin(), flat_data.end());
-        ball_map[v].rehash(ball_map[v].size());
+        ball_map[v].rehash(
+            ball_map[v]
+                .size());  // Above insertion removed duplicates, now make sure
+                           // hashing is as effiicient as possible.
         total_size += ball_map[v].size();
     }
     return total_size;
 }
 
 std::pair<long long, long long> ApproxDistanceOracles::preprocess(
-    const std::vector<std::vector<int>>& cust_land) {
+    const std::vector<std::vector<long long>>& cust_land) {
     long long total_space = 0, num_runs = 0;
     long long n_root =
         static_cast<long long>(std::ceil(pow(graph->n, 1.0 / k)));
     do {
         num_runs++;
-        landmarks.resize(k + 1);
-        rank.resize(graph->n, 0);
-        focus.resize(graph->n, std::vector<int>(k, -1));
-        focus_distance.resize(
+        landmarks.assign(k + 1, std::vector<long long>());
+        rank.assign(graph->n, 0);
+        focus.assign(graph->n, std::vector<long long>(k, -1));
+        focus_distance.assign(
             graph->n,
             std::vector<double>(k, std::numeric_limits<double>::infinity()));
-        ball.resize(graph->n,
-                    std::vector<std::queue<std::pair<int, double>>>(k));
-        ball_map.resize(
-            graph->n,
-            fph::MetaFphMap<int, double, fph::meta::MixSeedHash<int>>());
+        ball.assign(graph->n,
+                    std::vector<std::queue<std::pair<long long, double>>>(k));
+        ball_map.assign(graph->n,
+                        fph::MetaFphMap<long long, double,
+                                        fph::meta::MixSeedHash<long long>>());
 
         if (debug == 1 && spaceopt == 0) {
             for (long long i = 0; i < k; i++) {
@@ -223,9 +229,29 @@ std::pair<long long, long long> ApproxDistanceOracles::preprocess(
 
         for (long long i = 0; i < k; i++) {
             for (long long v : landmarks[i]) {
-                trimmedDijkstra(v, i);
+                if (rank[v] >= i) {
+                    // Run only when v can belong to that level ball.
+                    trimmedDijkstra(v, i);
+                }
             }
         }
+
+        // Note that the above loop may not add the focii to the balls
+        // of the vertices in a special case when the focus of the higher level
+        // is at the same distance but is randomly chosen differently. Query
+        // Processing Algorithm will mess up if this is not handled, (wrongly)
+        // declaring that the distance is infinity. Now add each vertex’s focus
+        // at level i into its ball at level i+1 (excluding the last level).
+        for (long long v = 0; v < graph->n; ++v) {
+            for (long long i = 0; i + 1 < k; ++i) {
+                long long f = focus[v][i];
+                double d = focus_distance[v][i];
+                if (f >= 0 && d < INF) {
+                    ball[v][i + 1].push({f, d});
+                }
+            }
+        }
+
         total_space = hashBalls();
         std::clog << "Total space used: " << 2 * total_space + graph->n
                   << " words, and required limit: "

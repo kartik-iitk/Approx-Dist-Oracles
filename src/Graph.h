@@ -10,7 +10,7 @@ const double INF = std::numeric_limits<double>::infinity();
 class Graph {
    public:
     long long n;
-    std::vector<std::vector<std::pair<int, double>>> adj;
+    std::vector<std::vector<std::pair<long long, double>>> adj;
     std::vector<std::vector<double>> trueDist;
 
     Graph(long long n);

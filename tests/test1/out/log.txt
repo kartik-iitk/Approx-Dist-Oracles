@@ -2,7 +2,7 @@ Read parameters: n = 6, k = 5, num_threads = 1, one_indexed = 1, both = 0, space
 Graph loaded with 6 vertices.
 Read custom landmarks.
 Total space used: 30 words, and required limit: 6000 words
-Preprocessing completed in 1 run(s) in 0.107083ms
+Preprocessing completed in 1 run(s) in 0.368667ms
 
 Focii of vertex 0: (2, 3) (2, 3) (-1, inf) (-1, inf) (-1, inf) 
 Focii of vertex 1: (2, 1) (2, 1) (-1, inf) (-1, inf) (-1, inf) 
@@ -19,43 +19,43 @@ Level 4 landmarks (0):
 
 Ball of vertex 0: 
   Level 0: (0, 0) 
-  Level 1: 
-  Level 2: (2, 3) 
+  Level 1: (2, 3) 
+  Level 2: (2, 3) (2, 3) 
   Level 3: 
   Level 4: 
 
 Ball of vertex 1: 
   Level 0: (1, 0) 
-  Level 1: 
-  Level 2: (2, 1) 
+  Level 1: (2, 1) 
+  Level 2: (2, 1) (2, 1) 
   Level 3: 
   Level 4: 
 
 Ball of vertex 2: 
   Level 0: (2, 0) 
-  Level 1: (2, 0) 
-  Level 2: (2, 0) 
+  Level 1: (2, 0) (2, 0) 
+  Level 2: (2, 0) (2, 0) 
   Level 3: 
   Level 4: 
 
 Ball of vertex 3: 
   Level 0: (3, 0) 
-  Level 1: (4, 2) 
-  Level 2: (2, 3) 
+  Level 1: (4, 2) (4, 2) 
+  Level 2: (2, 3) (2, 3) 
   Level 3: 
   Level 4: 
 
 Ball of vertex 4: 
   Level 0: (4, 0) 
-  Level 1: (4, 0) 
-  Level 2: (2, 5) 
+  Level 1: (4, 0) (4, 0) 
+  Level 2: (2, 5) (2, 5) 
   Level 3: 
   Level 4: 
 
 Ball of vertex 5: 
   Level 0: 
-  Level 1: (4, 6) 
-  Level 2: (2, 11) 
+  Level 1: (4, 6) (4, 6) 
+  Level 2: (2, 11) (2, 11) 
   Level 3: 
   Level 4: 
 
