@@ -2,19 +2,13 @@
 
 ## CS648 Mini Project 2024-25-II
 
-## Group 4
-
-| Name                  | Roll No. |
-| --------------------- | -------- |
-| Kartik Anant Kulkarni | 210493   |
-| Siddharth Garg        | 211031   |
-| Goural                | 210393   |
+This project presents an efficient implementation of approximate distance oracles. The solution features a modular, multi-executable design, enabling flexible experimentation and evaluation of the core algorithm of [Thorup-Zwick](https://doi.org/10.1145/1044731.1044732). We have also implemented the optimized variant of Dijkstra's algorithm and used a perfect hashing library. The implementation is tailored for clarity and extensibility, supporting comprehensive analysis and visualization of results. The `./Report.pdf` outlines an enhanced description of the algorithm with intuition and rigorous proof.
 
 ## Requirements
 
 - CMake Version >= 3.10
-- G++ Version 6.3.0 **OR** Apple clang version 16.0.0
-- Python 3.11.10; External packages: Jupyter, Matplotlib, fibonacci-heap-mod
+- Apple Clang version 16.0.0 **OR** G++ Version 6.3.0 (Not fully tested)
+- Python 3.11.10; External packages: Jupyter, Matplotlib
 
 ## How to compile
 
@@ -25,7 +19,7 @@ cmake ..
 make
 ```
 
-This will generate an executable approx_dist_oracle
+This will generate two executables `./build/approx_dist_oracle` and `./build/true_distance`.
 
 ## How to run
 
@@ -60,6 +54,10 @@ Eg:
 
 4. Use `./src/analysis.ipynb` for analysis and plots.
 
-## References
+## Group 4
 
-1. https://github.com/renzibei/fph-table/tree/master
+| Name                  | Roll No. |
+| --------------------- | -------- |
+| Kartik Anant Kulkarni | 210493   |
+| Siddharth Garg        | 211031   |
+| Goural                | 210393   |

@@ -332,7 +332,7 @@ To find the distance between two vertices \textit{(u, v)}, we exploit symmetry i
     \item Else \(\text{report } \delta(u, L_2(u)) + \delta(L_2(u), v)\)
 \end{enumerate}
 
-\noindent \emph{Note}: This can be improved further as detailed in the kth level generalisation of the oracle as described in the next section, by introducing another level of balls and getting rid of global ditances.
+\noindent \emph{Note}: On careful observation, proving case 5 requires information only about case 1 and 4. A pattern of switching between u and v is evident. Thus, the query processing algorithm can be improved further as detailed in the kth level generalization of the oracle (described in the next section), by introducing another level of balls and getting rid of global distances.
 \subsection{Proof of Correctness}
 Refer Figure~\ref{fig:correctstretch}. Case 1 and 2 of query processing reports the exact distance, which is within the bound. Note that, here we assumed that the landmark vertices of higher levels are farther, but this can be ensured by hierarchical sampling as described in the construction of the generalised oracle.
 \begin{itemize}
@@ -381,7 +381,7 @@ This multi-level design preserves theoretical guarantees while improving both st
  The key insight is to always be able to jump from u. Further, we can exploit the symmetry of the distance calculation and conclude that the jump from the destination vertex also must be single. So, we would have to maintain balls of vertices from Landmarks of all levels for every vertex. Employing a hierarchical sampling scheme, we effectively will try to find an intermediate vertex in each of the balls to see if u or its focus belonging to the next level are in a common ball. We thus maintain localized distance information in a series of hash tables, which enables constant-time query answers. The construction proceeds as follows:
 
 \begin{enumerate}
-    \item \textbf{Hierarchical Sampling:} We maintain \( k \) ``levels'' of landmark vertice ``sets'' \{\( \text{landmark}^0, \\ \text{landmark}^1, \ldots, \text{landmark}^k \)\}, starting with \( \text{landmark}^0 = V \). For each \( 1 \le i \le k \), every vertex in \( \text{landmark}^{i-1} \) is included in \( \text{landmark}^i \) independently with probability \( n^{-1/k} \). Allowing vertices having a max level (called as the \emph{rank}, henceforth) allows us to handle cases ensuring that a focus of higher level is always the same or farther than the lower level.
+    \item \textbf{Hierarchical Sampling:} We maintain \( k \) ``levels'' of landmark vertice ``sets'' \{\( \text{landmark}^0, \\ \text{landmark}^1, \ldots, \text{landmark}^k \)\}, starting with \( \text{landmark}^0 = V \). For each \( 1 \le i \le k \), every vertex in \( \text{landmark}^{i-1} \) is included in \( \text{landmark}^i \) independently with probability \( n^{-1/k} \). Allowing vertices having a max level (called as the \emph{rank}, henceforth) in all lower levels enables us to handle cases ensuring that a focus of higher level is always the same or farther than the lower level.
 
     \item \textbf{Local Distance Storage:} We define the notion of locality using closest landmark at any level \textit{i}, called as the \emph{focus}. It is important to note that, by the nature of sampling as described earlier, the same vertex can be focus for a given vertex at different levels.
     Using this, we define the locality of vertex \textit{u} as \emph{ball} of \( u \) at level \( i \) as
@@ -396,7 +396,7 @@ This multi-level design preserves theoretical guarantees while improving both st
 
 The complete data structure for the oracle is the collection
 \[
-\{\text{Ball}_i(u) : u \in V,\; 0 \le i \le k\}.
+\{\text{Ball}_i(u) : u \in V,\; 0 \le i \l k\}.
 \]
 
 \subsection{Size Analysis of the \((2k-1)\)-Approximate Distance Oracle}
@@ -424,7 +424,7 @@ Thus, the \((2k-1)\)-approximate distance oracle requires an expected space of \
 
 \subsection{Query Answering Procedure}
 
-To determine an approximate distance between any two vertices \(u\) and \(v\) using our \(k\)-level oracle, we exploit the hierarchical data structure built during preprocessing and symmetry as in case of 5-Approximate Distance Oracle. However, we leverage the powerful intuition mentioned earlier of finding a point common to both the balls of i. We start with u, and iteratively jump back and forth between u and v by checking if this vertex belongs to the other's ball, or otherwise upgrade myself to the higher level focus of the other vertex (moving closer, but risking loss of access to the older vertex). Note that in the 5 distance oracle procedure developed previously, it was equivalent to double the comparisons we make here, because we were moving two iterators as we had 1 ball lesser for each vertex. By sampling method, each \(focus_i(u)\) gets stored in the corresponding hash table for \(\text{Ball}_i(u)\), the distance \(\delta(u,focus_i(u))\) is readily available. If the algorithm finds no such common vertex, it returns w.
+To determine an approximate distance between any two vertices \(u\) and \(v\) using our \(k\)-level oracle, we exploit the hierarchical data structure built during preprocessing and symmetry as in case of 5-Approximate Distance Oracle. However, we leverage the powerful intuition mentioned earlier of finding a point common to both the balls of level i. We start with u, and iteratively jump back and forth between u and v by checking if this vertex belongs to the other's ball, or otherwise upgrade myself to the higher level focus of the other vertex (moving closer, but risking loss of access to the older vertex). Note that in the 5 distance oracle procedure developed previously, it was equivalent to double the comparisons we make here, because we were moving two iterators as we had 1 ball lesser for each vertex. By sampling method, each \(focus_i(u)\) gets stored in the corresponding hash table for \(\text{Ball}_i(u)\), the distance \(\delta(u,focus_i(u))\) is readily available. If the algorithm finds no such common vertex, it returns w.
 
 The query answering mechanism for \textit{u, v} operates as follows:
 
@@ -435,7 +435,7 @@ The query answering mechanism for \textit{u, v} operates as follows:
         \If{$u < 0$ or $v < 0$ or $u \geq n$ or $v \geq n$}
             \State \Return $\infty$
         \EndIf
-        \If{$u = v$}
+        \If{$u = v$} \Comment{We don't store ourselves in the ball}
             \State \Return $0$
         \EndIf
     
@@ -444,12 +444,12 @@ The query answering mechanism for \textit{u, v} operates as follows:
         
         \While{$w \notin \text{Ball}_i(v)$}
             \State $i \gets i + 1$
-            \If{$i \geq k$}
+            \If{$i \geq k$} \Comment{In Case the Graph is disconnected}
                 \State \textbf{break}
             \EndIf
             \State \textbf{swap} $u \leftrightarrow v$
             \State $w \gets \text{focus}_{i-1}(u)$
-            \If{$w < 0$}
+            \If{$w < 0$} \Comment{Error-handling}
                 \State \textbf{break}
             \EndIf
         \EndWhile
@@ -610,14 +610,26 @@ Given that the expected size of \(\text{Ball}_i(u)\) is \(O(n^{1/k})\), the expe
     \Procedure{Preprocess}{Graph $G=(V,E)$, parameter $k$}
         \State \Call{ChooseLandmarks}{}
         \For{$i \gets 1$ to $k-1$}
-            \State \Call{MltiSourceDijkstra}{$\text{landmarks}[i]$, $i$}
+            \State \Call{MultiSourceDijkstra}{$\text{landmarks}[i]$, $i$}
         \EndFor
-        \Comment{Skip $i = k$; focus assumed at infinity}
-        \For{$i \gets 0$ to $k-1$}
-            \ForAll{$v \in \text{landmarks}[i]$}
-                \State \Call{TtrimmedDijkstra}{$v$, $i$}
+        \Comment{Skip \( i = k \); focus assumed at infinity}
+        \For{$i \gets 0$ \textbf{to} $k-1$}
+            \For{each vertex \( v \) in \texttt{landmarks[i]}}
+                \If{\( \text{rank}[v] \ge i \)}
+                    \State \Call{trimmedDijkstra}{$v,\, i$}
+                \EndIf
             \EndFor
         \EndFor
+
+        \medskip
+        \State{
+            \textbf{For} each vertex $v$ and level $i$, add $(\text{focus}[v][i], \text{focus\_distance}[v][i])$ to $\text{ball}[v][i+1]$.
+            }
+
+        \Comment{Special Case: The focus of the higher level is at the same distance but different.}
+        \medskip
+        
+        \State \( \text{total\_space} \gets \Call{hashBalls}{} \)
         \State \Call{HashBalls}{}\Comment{For efficient retrieval, using a stronger hash function}
     \EndProcedure
     \end{algorithmic}
@@ -677,7 +689,7 @@ C++ was chosen as the main language for experimentation as it provided greater c
 \subsection*{Key Observations}
 
 \begin{enumerate}
-    \item For a fixed $k=3$ and average degree, as $n$ increases, the stretch distribution shifts to the right; however, the frequency of stretch values close to 1 remains high.
+    \item For a fixed $k=3$ and average degree, as $n$ increases, the stretch distribution shifts to the right; however, the persistent mass of stretch values close to 1 remains high. Thus, the randomized algorithm scales gracefully—its worst-case stretch may worsen on huge graphs, but in practice most distance queries remain highly accurate even as n increases.
 
     \begin{figure}[H]
         \centering
@@ -690,7 +702,7 @@ C++ was chosen as the main language for experimentation as it provided greater c
         \label{fig:three_images}
     \end{figure}
 
-    \item For a fixed $n=4039$ and average degree, as $k$ increases, the stretch distribution shifts to the right; however, the frequency of stretch values close to 1 remains high, indicating great compressibility of the dataset.
+    \item For a fixed $n=4039$ and average degree, as $k$ increases, the stretch distribution shifts to the right; however, the frequency of stretch values close to 1 remains high. By raising k we effectively compress the oracle (use less space or time) but loosen the distance guarantees; yet in practice even a very “loose” setting (k=9) returns exact distances for a large fraction of queries, showcasing the dataset's high compressibility.
 
     \begin{figure}[H]
         \centering
@@ -706,7 +718,7 @@ C++ was chosen as the main language for experimentation as it provided greater c
         \label{fig:4_images}
     \end{figure}
 
-    \item As the average degree decreased, instances of higher stretch became more frequent.
+    \item As the average degree decreased, instances of higher stretch became more frequent. However, clusters start appearing in the histogram because more connectivity yields better approximate routes of roughly the same stretch.
     
     \begin{figure}[H]
         \centering
@@ -745,13 +757,14 @@ C++ was chosen as the main language for experimentation as it provided greater c
 \section{Future Work}
 
 \begin{itemize}
-    \item \textbf{Parallelization for Fast Pre-Processing:} One promising direction is to parallelize the preprocessing phase. Since computing local distance information and forming the clusters or ball sets for each vertex can be done independently, distributing this work across multiple processors or cores can significantly reduce the overall runtime.
+    \item \textbf{Parallelization for Fast Pre-Processing:} One promising direction is to parallelize the preprocessing phase. Since computing local distance information and forming the clusters or ball sets for each vertex can be done independently, distributing this work across multiple processors or cores can significantly reduce the overall runtime. Further optimisations for memory allocation and cache usage can also be explored to improve performance.
     
     \item \textbf{Dynamic Updates:} Enhancing the data structure to support dynamic updates—such as insertions, deletions, or weight modifications—without requiring a full re-preprocessing of the graph would make the oracle more practical for real-time or evolving networks.
 \end{itemize}
 
 \begin{thebibliography}{9}
     \bibitem{fphlib} \url{https://github.com/renzibei/fph-table/tree/master}
+    \bibitem{visualisation} \url{https://github.com/TylerYep/approx-distance-oracle/}
     \bibitem{roadnet} \url{https://snap.stanford.edu/data/roadNet-CA.html}
     \bibitem{facebook} \url{https://snap.stanford.edu/data/ego-Facebook.html}
     \bibitem{enron} \url{https://snap.stanford.edu/data/email-Enron.html}
